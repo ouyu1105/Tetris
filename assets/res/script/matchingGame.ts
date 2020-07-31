@@ -891,11 +891,7 @@ export class MatchingGame extends cc.Component {
         idLabel.node.color = cc.color(255,255,255);
     }
 
-    onClickToRecord()
-    {
-        cc.director.loadScene("RecordView");
-    }
-    
+
 
     // update (dt) {}
 }
