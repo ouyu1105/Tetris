@@ -1,0 +1,12 @@
+{
+  "ver": "1.1.2",
+  "uuid": "c60aa263-50af-4fed-8bb3-1e6fa4848d6f",
+  "isBundle": true,
+  "bundleName": "Bres",
+  "priority": 1,
+  "compressionType": {},
+  "optimizeHotUpdate": {},
+  "inlineSpriteFrames": {},
+  "isRemoteBundle": {},
+  "subMetas": {}
+}

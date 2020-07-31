@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.5",
+  "uuid": "7fb60a08-98b0-46f1-b97a-c62b8a9bd13c",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 475,
+  "height": 847,
+  "platformSettings": {},
+  "subMetas": {
+    "俄罗斯方块背景界面": {
+      "ver": "1.0.4",
+      "uuid": "e1f79720-44da-4c23-afdf-c724aab907b1",
+      "rawTextureUuid": "7fb60a08-98b0-46f1-b97a-c62b8a9bd13c",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 475,
+      "height": 847,
+      "rawWidth": 475,
+      "rawHeight": 847,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}
