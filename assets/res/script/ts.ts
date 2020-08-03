@@ -48,36 +48,42 @@ export class Login extends cc.Component {
         DATA.init();
         
 
-        DATA.Login.loginCallback = data => {
+        DATA.Login.loginCallback = data =>
+        {
             cc.log(data);
-            if (data.ok) {
+            if (data.ok)
+            {
                 // 登录成功
                 DATA.rid = data.rid;
-                this.onClickIsSureButtonToGameHallView();
-                this.tips("登录成功");
-            } else {
+                DATA.record = data.record;
+                if (DATA.record)
+                {
+                    cc.director.loadScene("MatchingGameView"); // 加载游戏场景
+                }
+                else
+                    cc.director.loadScene("GameHallView",this.showID);
+            }
+            else
+            {
                 // 登录失败
                 DATA.uid = 0;
-                this.tips("登陆失败");
                 let node = cc.find("Canvas/PasswordError");
-                node.active = true;
-                
- 
+                node.active = true;       
             }
         }
 
-        DATA.Login.signupCallback = data => {
-            // 
-            if (data.ok) {
+        DATA.Login.signupCallback = data =>
+        { 
+            if (data.ok)
+            {
                 // 注册成功
                 this.tips("注册成功， 你的ID是" + data.uid);
-
                 cc.find("Canvas/SucceedRegister").active = true;
-
                 let label = cc.find("Canvas/SucceedRegister/SucceedRegisterLayout").children[0].getComponent(cc.Label);
                 label.string = "注册成功,ID:" + data.uid;
-
-            } else {
+            }
+            else
+            {
                 // 注册失败
                 this.tips(data.msg);
             }
@@ -117,10 +123,11 @@ export class Login extends cc.Component {
         this.getAccountAndPassword();
     }
 
-    //从登录界面进入游戏大厅
-    onClickIsSureButtonToGameHallView()
+    //从注册返回登录
+    onClickBackToLogin()
     {
-        cc.director.loadScene("GameHallView",this.showID);  
+        cc.find("Canvas/RegisterBackGround").active = false;
+        cc.find("Canvas/LoginBackGround").active = true;
     }
 
     showID()

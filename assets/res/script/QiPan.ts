@@ -61,9 +61,6 @@ class QiPan {
     speed:number;//速度
     level:number;//等级
     container:boolean[][];
-    activeContainer:boolean[][];
-    activeX:number[];
-    activeY:number[];
     score:number=0;//得分
     dropping: number|null = null;
     xPos = 0;
@@ -90,15 +87,12 @@ class QiPan {
             this.height = HardLevel[hardLevel][1];
             //this.speed = ;
         }
-        this.container = Array(...Array(this.height)).map(() => Array(this.width).fill(false));     // 不留空
-        this.activeContainer = Array(...Array(this.height)).map(() => Array(this.width).fill(false));
+        this.container = Array(...Array(this.height)).map(() => Array(this.width).fill(false));
         //this.score = 0;
         this.debuff = 1;
         this.dropping = null;
         this.xPos = 0;
         this.yPos = 0;
-        this.activeX = null;
-        this.activeY = null;
         this.emit('reset', {
             width: this.width,
             height: this.height,
@@ -318,7 +312,7 @@ class QiPan {
      * 下落块成功下落会触发`posChanged`事件 无参数
      */
     drop () {
-        if (this.dropping === null) return;
+        if (this.dropping === null) return ;
         var _bs = BlockShape[this.dropping],
             _yp = this.yPos + 1,
             _i, _j, _bsi;
@@ -354,8 +348,6 @@ class QiPan {
         var _bs = BlockShape[this.dropping],
             _i, _j, _bsi;
         
-        // *********
-           // cc.log(_bs,dropping);
         for (_bsi of _bs) {
             _i = _bsi[0];
             _j = this.xPos + _bsi[1];
@@ -365,7 +357,6 @@ class QiPan {
             }
         }
         this.__blockSet();
-        // this.emit('newDropping',undefined);
         this.emit('posChanged',1);  // 表示新的一行
         this.update();
         this.play();
@@ -392,10 +383,6 @@ class QiPan {
     play () {
         this.isPlaying = true;
         if (this.__it === null) this.__itcb();
-        // cc.log(this.__it);
-        // if (this.__it !== null) return;
-        // this.__itcb();
-        // cc.log(this.__it);
         this.emit('play', undefined);
     }
     /**
@@ -405,11 +392,6 @@ class QiPan {
      */
     pause () {
         this.isPlaying = false;
-        // cc.log(this.__it);
-        // if (this.__it === null) return;
-        // window.clearTimeout(this.__it);
-        // this.__it = null;
-        // cc.log(this.__it);
         this.emit('pause', undefined);
     }
     /**

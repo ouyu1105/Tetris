@@ -30,7 +30,7 @@ export class Matching extends cc.Component {
     {
         //向服务器申请匹配
         DATA.ws.send({desc: "matching"});
-        cc.log("申请匹配");    
+        //cc.log("申请匹配");
     }
 
     //从匹配界面进入游戏界面
@@ -71,19 +71,24 @@ export class Matching extends cc.Component {
     //进入回放界面
     onClickToRecord()
     {
-        cc.director.loadScene("RecordView");
+        DATA.ws.send({desc:"recordList"});
+    }
+
+    onLoad()
+    {
+        DATA.init();
     }
     
 
     start ()
     {
         let tag = false; //标记是否已经匹配成功
-        DATA.init();
+        //DATA.init();
 
         //匹配回调 成功则进入匹配
         DATA.Matching.matchingCallback = data =>
         {
-            cc.log("进入匹配");
+            //cc.log("进入匹配");
             if(tag == true)
                 return ;
             if(data.ok)
@@ -159,7 +164,7 @@ export class Matching extends cc.Component {
         {
             tag = false;
             //cc.log(data.unn);
-            let startNowX = 437, startNextX = 592;
+            //let startNowX = 437, startNextX = 592;
             //切换场景 存储
             for(let i=0;i<12;i+=3)
             {
@@ -174,23 +179,47 @@ export class Matching extends cc.Component {
                 DATA.information[data.unn[i]].score = 0;
                 DATA.information[data.unn[i]].level = 1;
                 DATA.information[data.unn[i]].debuffTag = false;
-                if(data.unn[i] == DATA.uid)
-                {
-                    DATA.information[data.unn[i]].drawNowX = 70;
-                    DATA.information[data.unn[i]].drawNextX = 225;
-                }
-                else
-                {
-                    DATA.information[data.unn[i]].drawNowX = startNowX;
-                    DATA.information[data.unn[i]].drawNextX = startNextX;
-                    startNowX += 305;
-                    startNextX += 305;
-                }
-
             }
             cc.director.loadScene("MatchingGameView");
         }
+
+
+        //获取回放列表后回调
+        DATA.Record.recordListCallback = data =>
+        {
+            if(data.ok)
+            {
+                if (data.ids)
+                {
+                    DATA.ids = data.ids;
+                    DATA.uid1s = data.uid1s;
+                    DATA.uid2s = data.uid2s;
+                    DATA.uid3s = data.uid3s;
+                    DATA.uid4s = data.uid4s;
+                    DATA.dates = data.dates;  
+                    cc.director.loadScene("RecordView");
+                }
+                else
+                {
+                    DATA.ids = [];
+                    DATA.uid1s = [];
+                    DATA.uid2s = [];
+                    DATA.uid3s = [];
+                    DATA.uid4s = [];
+                    DATA.dates = []; 
+                }
+                
+
+
+                //动态生成一个按钮 显示用户id  存储获得的ids       
+            }
+            else
+            {
+                cc.log("error");
+            }
+        }
     }
+
 
     //获取范围内的随机整数
     getRandomInt(min:number,max:number)

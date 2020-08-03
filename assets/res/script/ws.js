@@ -1,6 +1,7 @@
 import "./long";
 import "./protobuf";
 import "./msg.proto";
+import { connect } from "http2";
 
 const Msg = window.protobuf.roots.default.Msg;
 
@@ -155,10 +156,10 @@ class WS {
         this.__ws.onopen = () => {
             this.__ok = true;
             this.emit('wsopen');
-            this.send({desc: 'wslink'});
         }
         this.__ws.onclose = () => {
             this.__ok = false;
+            this.__ws = null;
             this.emit('wsclose');
         }
         this.__ws.onerror = () => {

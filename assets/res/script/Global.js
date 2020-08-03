@@ -1,7 +1,7 @@
 import { createCipher } from 'crypto';
+import { connect } from 'http2';
 import { inherits } from 'util';
 import { WS } from './ws';
-import {GRecord} from './record';
 
 const DATA = {};
 // 其他需要一次性初始化的变量在这块初始化
@@ -58,11 +58,10 @@ DATA.init = function() {
     if (DATA.inited) return;    // 防止反复初始化
     DATA.inited = true;
     ws = new WS(); // 创建通信对象
-    rc = new GRecord();
 
     DATA.Login = {};
     DATA.Game = {};
-    DATA.Recocd = {};
+    DATA.Record = {};
     DATA.Matching = {};
     DATA.AI = {};
     DATA.uid = 0; 
@@ -74,11 +73,18 @@ DATA.init = function() {
     //DATA.next = 0;
     DATA.reduce = null;
     DATA.blocks = [0,0,0,0];
+    DATA.ids = [];
+    DATA.uid1s = [];
+    DATA.uid2s = [];
+    DATA.uid3s = [];
+    DATA.uid4s = [];
+    DATA.dates = [];
     //DATA.now = -1;
     //DATA.next = -1;
     //DATA.Now = [-1,-1,-1,-1];
     //DATA.Next = [-1,-1,-1,-1];
     DATA.information = {};
+    DATA.record = undefined;
     
 
     ws.on("wsopen", () => {
@@ -150,42 +156,19 @@ DATA.init = function() {
     });
 
     //rc.on("gameOver gameStart newDropping reduce posChanged droppingChanged ")
-    rc.on("recordList",data =>{
-        DATA.Recocd.recordListCallback && DATA.Recocd.recordListCallback(data);
-    })
-
-    rc.on("recordGet",data =>{
-        DATA.Recocd.recordGetCallback && DATA.Recocd.recordGetCallback(data);
-    })
-
-
-    rc.on("gameOver",data =>{
-        DATA.Recocd.gameOverCallback && DATA.Recocd.gameOverCallback(data);
+    ws.on("recordList",data =>{
+        DATA.Record.recordListCallback && DATA.Record.recordListCallback(data);
     });
 
-    rc.on("gameStart",data =>{
-        DATA.Recocd.gameStartCallback && DATA.Recocd.gameStartCallback(data);
+    ws.on("recordGet",data =>{
+        DATA.Record.recordGetCallback && DATA.Record.recordGetCallback(data);
     });
 
-    rc.on("newDropping",data =>{
-        DATA.Recocd.newDroppingCallback && DATA.Recocd.newDroppingCallback(data);
+    ws.on("crowd",()=>
+    {
+        DATA.crowdCallback && DATA.crowdCallback();
     });
 
-    rc.on("reduce",data =>{
-        DATA.Recocd.reduceCallback && DATA.Recocd.reduceCallback(data);
-    });
-
-    rc.on("posChanged",data =>{
-        DATA.Recocd.posChangedCallback && DATA.Recocd.posChangedCallback(data);
-    });
-
-    rc.on("droppingChanged",data =>{
-        DATA.Recocd.droppingChangedCallback && DATA.Recocd.droppingChangedCallback(data);
-    });
-
-    
-    
-   
 
     DATA.ws = ws;
 

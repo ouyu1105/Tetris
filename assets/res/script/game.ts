@@ -75,6 +75,7 @@ export class Game extends cc.Component {
 
     onLoad()
     {
+        DATA.init();
         //打开键盘监听
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN,this.OnKeyDown,this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP,this.OnKeyUp,this);
@@ -445,7 +446,7 @@ export class Game extends cc.Component {
     }
 
     OnclickModel(target,data)
-       {
+    {
            if(data == "hell")
            {
                model = MODEL[0];
@@ -480,7 +481,7 @@ export class Game extends cc.Component {
            }
            else if(data == "back")
            {
-               cc.director.loadScene("GameHallView");
+               cc.director.loadScene("GameHallView",this.showID);
                //cc.log("back");
                return;
            }
@@ -602,8 +603,22 @@ export class Game extends cc.Component {
         }
         else if(data == "back")
         {
-            cc.director.loadScene("GameHallView");
+            model = null;
+            cc.director.loadScene("GameHallView",this.showID);
         }
+    }
+
+    showID()
+    {
+        let node = new cc.Node();
+        let idLabel = node.addComponent(cc.Label);
+        cc.director.getScene().addChild(node);
+        node.setContentSize(100,100);;
+        idLabel.string = "ID:"+DATA.uid;
+        idLabel.fontSize = 40;   
+        idLabel.node.x = 190;
+        idLabel.node.y = 630;
+        idLabel.node.color = cc.color(255,255,255);
     }
 
    

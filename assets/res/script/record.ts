@@ -28,6 +28,10 @@ class GRecord{
             clearTimeout(this._it);
             return;
         }
+        if (this._ptr >= this._buffer.length) {
+            this.emit("recordOver");//加载完成 可以正常继续
+            return;
+        }
         if (this._buffer[this._ptr] == 255) {
             clearTimeout(this._it);
             this._status = GRecord.Overed;
@@ -37,6 +41,7 @@ class GRecord{
         let uid = this._idx2id[this._buffer[this._ptr]],
             eid = this._buffer[this._ptr + 1],
             timeout = this._buffer[this._ptr + 2] + this._buffer[this._ptr + 3] * 256;
+
         this._it = setTimeout(()=>{
             if (eid >= 0 && eid <= 18) {
                 this._ptr += 4;
@@ -60,11 +65,12 @@ class GRecord{
                     reduce.push(getNumberFromUint8Array(this._buffer, this._ptr));
                     this._ptr += 4;
                 }
-                this.emit("reduce", {reduce: reduce});
+                this.emit("reduce", {reduce: reduce, uid: uid});
             } else {
                 console.log("发生错误，在", this._buffer, this._ptr, "附近!");
             }
-        }, timeout / this._speed);
+            this._movePtr();
+        }, this._speed === 0 ? 0 : timeout / this._speed);
     }
     
     constructor (record?: Uint8Array) {
@@ -120,8 +126,8 @@ class GRecord{
         }
     }
     setSpeed (speed: number) {
-        if (speed > 0)
-            this._speed = speed;
+        this._speed = speed;
+
     }
     on (en:string, efbk:Function) {
         efbk && (this._ee[en] = this._ee[en] || []).push(efbk);

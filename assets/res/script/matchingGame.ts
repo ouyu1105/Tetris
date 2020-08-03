@@ -9,7 +9,7 @@ import { QiPan, BlockShape } from './QiPan';
 
 import {Login} from './ts';
 import { DATA } from './Global.js';
-//import {GRecord} from './record'
+import {GRecord} from './record'
 
 //定义方块颜色
 const COLORS=[
@@ -85,25 +85,18 @@ export class MatchingGame extends cc.Component {
     
     board:QiPan = new QiPan(0);
 
+    sta = 1;
+    huanChong = [];
+    
+
 
     img: cc.SpriteFrame;
  
 
 
-    onLoad()
+    init()
     {
-        DATA.init();
-
-        //打开键盘监听
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN,this.OnKeyDown,this);
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP,this.OnKeyUp,this);
-
-        //设置now和next方块的形状
         let x,y;
-        this.now = this.getRandomInt(0,18);
-        this.next = this.getRandomInt(0,18);
-
-
         //初始化显示now、next的容器
         for (var k in DATA.information) {
             let info = DATA.information[k];
@@ -119,70 +112,14 @@ export class MatchingGame extends cc.Component {
             info.scoreLabel = node.addComponent(cc.Label);
             cc.director.getScene().addChild(node);
             node.setContentSize(1280,640);
-            node = new cc.Node();
-            info.levelLabel = node.addComponent(cc.Label);
-            cc.director.getScene().addChild(node);
-            node.setContentSize(1280,640);
+            let node1 = new cc.Node();
+            info.levelLabel = node1.addComponent(cc.Label);
+            cc.director.getScene().addChild(node1);
+            node1.setContentSize(1280,640);
         }
         
         model = "match";
         this.getSpeed(model);
-
-
-
-        //在棋盘显示方块 
-        this.board.on('blockSet', st => {
-            st.forEach(v => {
-                y = v[0], x = v[1];
-                    let node = DATA.information[DATA.uid].container[y][x];
-                    node.opacity = 255;
-                    node.color = DATA.information[DATA.uid].nowColor;
-                });
-            }
-        );
-        
-        //下落时移除上面的方块
-        this.board.on('blockRm', st => {
-            st.forEach(v => {
-                    y = v[0], x = v[1];
-                    DATA.information[DATA.myUid].container[y][x].opacity = 0;
-             });
-        });
-
-        //方块触底 结束 下一个移动
-        this.board.on('bottom', ()=>{
-            DATA.ws.send({desc:"newDropping"});
-            
-        });
-
-        //消除方块
-        let s = [0,50,150,300,950];//消除[]行对应的分数
-        this.board.on('reduce', rd => {
-            this.board.pause(); 
-            DATA.ws.send({desc: "reduce", data: {reduce: DATA.mapToArray(rd)}});
-            rd.forEach(v => {
-                // v为单次行号数组
-                v.forEach((row, count) => {
-                    // row为行号(y)
-                    for (var r = row + count; r > count; r--) {
-                        // 对于第r行
-                        
-                        DATA.information[DATA.uid].container[r].forEach((node, x) => {
-                            node.color = DATA.information[DATA.uid].container[r-1][x].color;    // 前一行的x
-                            node.opacity = DATA.information[DATA.uid].container[r-1][x].opacity;
-                        });
-                    }
-                    DATA.information[DATA.uid].container[count].forEach(node => {
-                        node.opacity = 0;
-                    });
-                });
-
-                DATA.information[DATA.uid].score += s[v.length];
-            });
-
-            this.board.play();
-        });
-
 
         //创建棋盘精灵和now、next精灵
 
@@ -219,7 +156,7 @@ export class MatchingGame extends cc.Component {
                     info.container.forEach((row, y) => {
                         
                         row.forEach((node, x) => {
-                            node.setPosition(info.drawX+x*500/this.board.height,582-y*500/this.board.height);
+                            node.setPosition(info.drawX+x*500/20,582-y*500/20);
                             node.addComponent(cc.Sprite);
                             node.getComponent(cc.Sprite).spriteFrame = img;
                             node.setScale(0.75);
@@ -240,9 +177,63 @@ export class MatchingGame extends cc.Component {
                         cc.director.getScene().addChild(node);
                     });
                 }
-
             });      
-        });                      
+        });   
+
+        //在棋盘显示方块 
+        this.board.on('blockSet', st => {
+            st.forEach(v => {
+                y = v[0], x = v[1];
+                    let node = DATA.information[DATA.uid].container[y][x];
+                    node.opacity = 255;
+                    node.color = DATA.information[DATA.uid].nowColor;
+                });
+            }
+        );
+        
+        //下落时移除上面的方块
+        this.board.on('blockRm', st => {
+            st.forEach(v => {
+                    y = v[0], x = v[1];
+                    DATA.information[DATA.myUid].container[y][x].opacity = 0;
+             });
+        });
+
+        //方块触底 结束 下一个移动
+        this.board.on('bottom', ()=>{
+            DATA.ws.send({desc:"newDropping"});  
+        });
+
+        //消除方块
+        let s = [0,50,150,300,950];//消除[]行对应的分数
+        this.board.on('reduce', rd => {
+            this.board.pause(); 
+            DATA.ws.send({desc: "reduce", data: {reduce: DATA.mapToArray(rd)}});
+            rd.forEach(v => {
+                // v为单次行号数组
+                v.forEach((row, count) => {
+                    // row为行号(y)
+                    for (var r = row + count; r > count; r--) {
+                        // 对于第r行
+                        
+                        DATA.information[DATA.uid].container[r].forEach((node, x) => {
+                            node.color = DATA.information[DATA.uid].container[r-1][x].color;    // 前一行的x
+                            node.opacity = DATA.information[DATA.uid].container[r-1][x].opacity;
+                        });
+                    }
+                    DATA.information[DATA.uid].container[count].forEach(node => {
+                        node.opacity = 0;
+                    });
+                });
+
+                DATA.information[DATA.uid].score += s[v.length];
+            });
+
+            this.board.play();
+        });
+
+
+                   
 
 
         //继续
@@ -280,11 +271,15 @@ export class MatchingGame extends cc.Component {
 
         DATA.Game.posChangedCallback = data =>
         {
+            if(this.sta == 0)
+            {
+                //加到缓冲
+                this.huanChong.push({func: DATA.Game.posChangedCallback, data : data});
+                return;
+            }
+            
             if(data.ok && data.uid != DATA.uid)
             {
-                //根据uid和next将方块画到对应位置
-                //更新
-
                 let isNew = Math.floor(data.pos / 65536);
                 let DATA_UID = DATA.information[data.uid];
 
@@ -313,6 +308,12 @@ export class MatchingGame extends cc.Component {
         //旋转改变
         DATA.Game.droppingChangedCallback = data =>
         {
+            if(this.sta == 0)
+            {
+                //加到缓冲
+                this.huanChong.push({func: DATA.Game.droppingChangedCallback, data : data});
+                return;
+            }
             if(data.ok && data.uid != DATA.uid)
             {
                 let DATA_UID = DATA.information[data.uid];
@@ -337,19 +338,24 @@ export class MatchingGame extends cc.Component {
                     }
                 });
             }
+            
         }
 
         //消除
         DATA.Game.reduceCallback = data =>
         {
-            //cc.log(data);
+            if(this.sta == 0)
+            {
+                //加到缓冲
+                this.huanChong.push({func: DATA.Game.reduceCallback, data : data});
+                return;
+            }
 
             if(data.ok)
             {
                 //根据消除的行数 发送给包括自己的所有人
                 //解码 maptparray arraytomap
                 var rd = DATA.arrayToMap(data.reduce);
-                //cc.log(data.uid,rd);
                 var DATA_UID = DATA.information[data.uid];
 
                 data.uid != DATA.uid && rd.forEach(v => {
@@ -372,17 +378,14 @@ export class MatchingGame extends cc.Component {
                     
                 });
                 let tempLevel = this.getLevel(DATA_UID.score);
-                //cc.log(tempLevel,DATA_UID.level,data.uid,DATA.uid);
                 
                 //自己升级不加速
                 if (tempLevel > DATA_UID.level && data.uid != DATA.uid)
                 {
-                    cc.log(this.board.speed);
                     //判断自己是否已经处于加速状态
                     if(DATA.information[DATA.uid].debuffTag == false)
                     {
                         this.board.speed *= 0.8;
-                        cc.log(this.board.speed);
                         setTimeout(() => {
                             this.board.speed /= 0.8;
                             DATA.information[DATA.uid].debuffTag = false;
@@ -395,10 +398,16 @@ export class MatchingGame extends cc.Component {
                 else
                 {
                     this.board.speed = SPEED[DATA_UID.level];
-                }   
+                }  
+                
 
                 DATA_UID.scoreLabel.string = DATA_UID.score.toString();
                 DATA_UID.levelLabel.string = DATA_UID.level.toString();
+
+                /*if(data.uid == DATA.uid)
+                {
+                    this.board.speed = SPEED[DATA_UID.level];
+                }*/
     
             }
             
@@ -407,6 +416,12 @@ export class MatchingGame extends cc.Component {
         //产生新的下落的块
         DATA.Game.newDroppingCallback = data =>
         {
+            if(this.sta == 0)
+            {
+                //加到缓冲
+                this.huanChong.push({func: DATA.Game.newDroppingCallback, data : data});
+                return;
+            }
             if(data.ok)
             {
                 var DATA_UID = DATA.information[data.uid];
@@ -415,7 +430,7 @@ export class MatchingGame extends cc.Component {
                 DATA_UID.nowColor = DATA_UID.nextColor;
                 DATA_UID.nextColor = COLORS[this.getRandomInt(0,5)];
                 DATA_UID.y = 0;
-                DATA_UID.x = Math.floor(this.board.width / 2) - 1;
+                DATA_UID.x = 4;
                 DATA_UID.score += 5;
                 //DATA_UID.level = this.getLevel(DATA_UID.score);
 
@@ -424,13 +439,12 @@ export class MatchingGame extends cc.Component {
                     this.board.newDropping(DATA_UID.Now);
                 }
                 
-                //cc.log(data.uid,DATA_UID.Now,DATA_UID.Next);
 
                 DATA_UID.nowContainer.forEach((node, i) => {
                     // 长度4
                     y = BlockShape[DATA_UID.Now][i][0];
                     x = BlockShape[DATA_UID.Now][i][1];
-                    node.setPosition(DATA_UID.drawX+40+x*350/this.board.height,647-y*350/this.board.height);
+                    node.setPosition(DATA_UID.drawX+40+x*350/20,647-y*350/20);
                     // spr = node.getComponent(cc.Sprite);
                     node.color = DATA_UID.nowColor;
                 });
@@ -440,21 +454,18 @@ export class MatchingGame extends cc.Component {
 
                     y = BlockShape[DATA_UID.Next][i][0];
                     x = BlockShape[DATA_UID.Next][i][1];
-                    node.setPosition(DATA_UID.drawX+180+x*350/this.board.height,647-y*350/this.board.height);
+                    node.setPosition(DATA_UID.drawX+180+x*350/20,647-y*350/20);
                     // spr = node.getComponent(cc.Sprite);
                     node.color = DATA_UID.nextColor;
                 });
 
                 let tempLevel = this.getLevel(DATA_UID.score);
-                //cc.log(tempLevel,DATA_UID.level,data.uid,DATA.uid);
                 //自己升级不加速
                 if (tempLevel > DATA_UID.level && data.uid != DATA.uid)
                 {
-                    cc.log(this.board.speed);
                     //判断自己是否已经处于加速状态
                     if(DATA.information[DATA.uid].debuffTag == false)
                     {
-                        cc.log(this.board.speed);
                         this.board.speed *= 0.8;
                         setTimeout(() => {
                             this.board.speed /= 0.8;
@@ -473,6 +484,11 @@ export class MatchingGame extends cc.Component {
                 DATA_UID.scoreLabel.string = DATA_UID.score.toString();
                 DATA_UID.levelLabel.string = DATA_UID.level.toString();
 
+                /*if(data.uid == DATA.uid)
+                {
+                    this.board.speed = SPEED[DATA_UID.level];
+                }*/
+
             }
             else{}
         }
@@ -480,6 +496,12 @@ export class MatchingGame extends cc.Component {
         //结束
         DATA.Game.gameOverCallback = data =>
         {
+            if(this.sta == 0)
+            {
+                //加到缓冲
+                this.huanChong.push({func: DATA.Game.gameOverCallback, data : data});
+                return;
+            }
             if(data.ok)
             {
                 //根据uid判断是谁结束 在对应界面画出gameover
@@ -522,7 +544,6 @@ export class MatchingGame extends cc.Component {
                         let node = new cc.Node();
                         let idLabel = node.addComponent(cc.Label);
                         idLabel.string = id[i].toString();
-                        cc.log(id[i]);
                         idLabel.node.x = 440;
                         idLabel.node.y = 510 - 90*i;
                         idLabel.fontSize = 35;
@@ -574,29 +595,245 @@ export class MatchingGame extends cc.Component {
             else{}
         }
 
-        this.board.reset(undefined);
+        
     }
+
+    onLoad()
+    {
+        DATA.init();
+
+        //打开键盘监听
+        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN,this.OnKeyDown,this);
+        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP,this.OnKeyUp,this);
+        let x,y;
+
+        var record;
+        if (DATA.record)
+        {
+            this.sta = 0; 
+            record = new GRecord(DATA.record);
+            record.setSpeed(0);
+            record.on("gameStart",(data)=>
+            {
+                for(let i=0;i<12;i+=3)
+                {
+                    DATA.information[data.unn[i]] = {};
+                    DATA.information[data.unn[i]].id = data.unn[i];
+                    DATA.information[data.unn[i]].Now = data.unn[i+1];
+                    DATA.information[data.unn[i]].Next = data.unn[i+2];
+                    DATA.information[data.unn[i]].y = 0;
+                    DATA.information[data.unn[i]].x = 9;
+                    DATA.information[data.unn[i]].nowColor = COLORS[this.getRandomInt(0,5)];
+                    DATA.information[data.unn[i]].nextColor = COLORS[this.getRandomInt(0,5)];
+                    DATA.information[data.unn[i]].score = 0;
+                    DATA.information[data.unn[i]].level = 1;
+                     
+                }
+                cc.log("now:"+DATA.information[DATA.uid].Now,"next:"+DATA.information[DATA.uid].Next); 
+
+                this.init();
+            });
+
+            record.on("newDropping",(data)=>
+            {
+                var DATA_UID = DATA.information[data.uid];
+                DATA_UID.Now = DATA_UID.Next;
+                DATA_UID.Next = data.next;
+                DATA_UID.nowColor = DATA_UID.nextColor;
+                DATA_UID.nextColor = COLORS[this.getRandomInt(0,5)];
+                DATA_UID.y = 0;
+                DATA_UID.x = 4;
+                DATA_UID.score += 5;
+                DATA_UID.level = this.getLevel(DATA_UID.score);
+
+
+                if(data.uid == DATA.uid)
+                {
+                    cc.log("newdropping",DATA_UID.Now);
+                    this.board.dropping = DATA_UID.Now;
+                    this.board.yPos = 0;
+                    this.board.xPos = 4;
+                    cc.log("board", this.board.dropping);
+                }
+
+                DATA_UID.nowContainer.forEach((node, i) => {
+                    y = BlockShape[DATA_UID.Now][i][0];
+                    x = BlockShape[DATA_UID.Now][i][1];
+                    node.setPosition(DATA_UID.drawX+40+x*350/20,647-y*350/20);
+                    node.color = DATA_UID.nowColor;
+                });
+
+                DATA_UID.nextContainer.forEach((node, i) => {
+                    y = BlockShape[DATA_UID.Next][i][0];
+                    x = BlockShape[DATA_UID.Next][i][1];
+                    node.setPosition(DATA_UID.drawX+180+x*350/20,647-y*350/20);
+                    node.color = DATA_UID.nextColor;
+                });
+
+                DATA_UID.scoreLabel.string = DATA_UID.score.toString();
+                DATA_UID.levelLabel.string = DATA_UID.level.toString();
+            });
+
+            let s = [0,50,150,300,950];
+            record.on("reduce",(data)=>
+            {
+                var rd = DATA.arrayToMap(data.reduce);
+                var DATA_UID = DATA.information[data.uid];
+                rd.forEach(v => {
+                    v.forEach((row, count) => {
+                        for (var r = row + count; r > count; r--) {
+                            DATA_UID.container[r].forEach((node, x) => {
+                                node.color = DATA_UID.container[r-1][x].color;    
+                                node.opacity = DATA_UID.container[r-1][x].opacity;
+                                if(data.uid == DATA.uid)
+                                {
+                                    this.board.container[r][x] = this.board.container[r-1][x];
+                                }
+                            });
+                        }
+                        DATA_UID.container[count].forEach(node => {
+                            node.opacity = 0;
+                        });
+                        
+                        //隐藏的改为false
+                        if(data.uid == DATA.uid)
+                        {
+                            for(var y in this.board.container[count])
+                            {
+                                this.board.container[count][y] = false;
+                            }
+                        }
+
+                    });
+                    DATA_UID.score += s[v.length];      
+                });       
+
+                DATA_UID.scoreLabel.string = DATA_UID.score.toString();
+                DATA_UID.levelLabel.string = DATA_UID.level.toString();  
+            });
+
+            record.on("posChanged",(data)=>
+            {
+                let isNew = Math.floor(data.pos / 65536);
+                let DATA_UID = DATA.information[data.uid];
+
+                isNew || BlockShape[DATA_UID.Now].forEach(v => {
+                    y = v[0] + DATA_UID.y, x = v[1] + DATA_UID.x;
+                    if(x>=0 && x<=9 && y>=0 && y<=19)
+                    {
+                        DATA_UID.container[y][x].opacity = 0;
+                        if(data.uid == DATA.uid)
+                        {
+                            this.board.container[y][x] = false;
+                        }     
+                    }
+                });
+                DATA_UID.y = Math.floor(data.pos/256);
+                DATA_UID.x = data.pos%256;
+
+                if(data.uid == DATA.uid)
+                {
+                    this.board.xPos = DATA_UID.x;
+                    this.board.yPos = DATA_UID.y;
+                }
+
+                BlockShape[DATA_UID.Now].forEach(v => {
+                    y = v[0] + DATA_UID.y, x = v[1] + DATA_UID.x;
+                    if(x>=0 && x<=9 && y>=0 && y<=19)
+                    {
+                        let node = DATA_UID.container[y][x];
+                        node.opacity = 255;
+                        node.color = DATA_UID.nowColor;
+
+                        if(data.uid == DATA.uid)
+                        {
+                            this.board.container[y][x] = true;
+                        }  
+                    }
+                });    
+            });
+
+            // 旋转
+            record.on("droppingChanged",(data)=>
+            {
+                let DATA_UID = DATA.information[data.uid];
+                BlockShape[DATA_UID.Now].forEach(v => {
+                    
+                    y = v[0] + DATA_UID.y, x = v[1] + DATA_UID.x;
+                    if(x>=0 && x<=9 && y>=0 && y<=19)
+                    {
+                        DATA_UID.container[y][x].opacity = 0;
+                        if(data.uid == DATA.uid)
+                        {
+                            this.board.container[y][x] = false;
+                        }  
+                    }
+                });
+                DATA_UID.Now = data.dropping;
+                if(data.uid == DATA.uid)
+                {
+                    this.board.dropping = DATA_UID.Now;
+                }
+                BlockShape[DATA_UID.Now].forEach(v => {
+                    
+                    y = v[0]+DATA_UID.y, x = v[1]+DATA_UID.x;
+                    if(x>=0 && x<=9 && y >= 0 && y <= 19)
+                    {
+                        let node = DATA_UID.container[y][x];
+                        node.color = DATA_UID.nowColor;
+                        node.opacity = 255;
+
+                        if(data.uid == DATA.uid)
+                        {
+                            this.board.container[y][x] = true;
+                        }  
+                    }
+                });
+            });
+
+            record.on("recordOver",()=>{
+                cc.log(this.board);
+                this.board.play();
+                this.sta = 1;
+                this.huanChong.forEach(obj =>{
+                    obj.func(obj.data);
+                });
+                DATA.record = null;
+            })
+            record.play();
+            
+
+        }
+        else
+        {
+            this.init();
+            this.board.reset(undefined);
+            if(model != null)
+            {
+                let node5 = new cc.Node();
+                let timeLabel = node5.addComponent(cc.Label);
+                cc.director.getScene().addChild(node5);
+                this.countdown = 3;//倒计时时间
+                if(this.countdown >= 0)
+                {
+                    //计时器 间隔1s
+                    this.schedule(function()
+                    {
+                        this.DoingSomething(timeLabel);
+                    },1);
+                }
+                
+
+            }
+        }
+        this.drawBoard();
+    }
+            
 
     start()
     {
         //速度大于0再开始 
-        if(model != null)
-        {
-            let node5 = new cc.Node();
-            let timeLabel = node5.addComponent(cc.Label);
-            cc.director.getScene().addChild(node5);
-            this.countdown = 3;//倒计时时间
-            if(this.countdown >= 0)
-            {
-                //计时器 间隔1s
-                this.schedule(function()
-                {
-                   this.DoingSomething(timeLabel);
-                },1);
-            }
-            this.drawBoard();
-
-        }
+        
     }
 
     update(dt)
@@ -617,7 +854,7 @@ export class MatchingGame extends cc.Component {
             timeLabel.fontSize = 55; 
             timeLabel.node.color = cc.color(255,255,255); 
 
-            if(this.countdown == 0)
+            if(this.countdown == 0 )
             {       
                 timeLabel.destroy();//倒计时结束 销毁文本节点
                 this.tag = true;
@@ -632,7 +869,7 @@ export class MatchingGame extends cc.Component {
                         // 长度4
                         y = BlockShape[info.Now][i][0];
                         x = BlockShape[info.Now][i][1];
-                        node.setPosition(info.drawX+50+x*350/this.board.height,642-y*350/this.board.height);
+                        node.setPosition(info.drawX+50+x*350/20,642-y*350/20);
                         node.color = info.nowColor;
                     });
 
@@ -640,7 +877,7 @@ export class MatchingGame extends cc.Component {
                         // 长度4
                         y = BlockShape[info.Next][i][0];
                         x = BlockShape[info.Next][i][1];
-                        node.setPosition(info.drawX+180+x*350/this.board.height,642-y*350/this.board.height);
+                        node.setPosition(info.drawX+180+x*350/20,642-y*350/20);
                         node.color = info.nextColor;
                     });
 
@@ -737,29 +974,29 @@ export class MatchingGame extends cc.Component {
         let ctx = this.node.getComponent(cc.Graphics);
 
         //画竖线
-        for(let i = 0;i <= this.board.width;i++)
+        for(let i = 0;i <= 10;i++)
         {
-            ctx.moveTo(-615+250/this.board.width*i,-265);
-            ctx.lineTo(-615+250/this.board.width*i,235);
+            ctx.moveTo(-615+250/10*i,-265);
+            ctx.lineTo(-615+250/10*i,235);
             ctx.fill();
             ctx.stroke();
         }
 
         //画横线
-        for(let i = 0;i <= this.board.height;i++)
+        for(let i = 0;i <= 20;i++)
         {
-            ctx.moveTo(-615,235-250/this.board.width*i);
-            ctx.lineTo(-365,235-250/this.board.width*i);
+            ctx.moveTo(-615,235-250/10*i);
+            ctx.lineTo(-365,235-250/10*i);
             ctx.fill();
             ctx.stroke();
         }
 
         for(let i = 0;i < 3;i++)
         {
-            for(let j = 0;j <= this.board.width;j++)
+            for(let j = 0;j <= 10;j++)
             {
-                ctx.moveTo(-255+250/this.board.width*j+305*i,-265);
-                ctx.lineTo(-255+250/this.board.width*j+305*i,235);
+                ctx.moveTo(-255+250/10*j+305*i,-265);
+                ctx.lineTo(-255+250/10*j+305*i,235);
                 ctx.fill();
                 ctx.stroke();
             }
@@ -767,10 +1004,10 @@ export class MatchingGame extends cc.Component {
 
         for(let i = 0;i < 3;i++)
         {
-            for(let j = 0;j <= this.board.height;j++)
+            for(let j = 0;j <= 20;j++)
             {
-                ctx.moveTo(-255+305*i,235-250/this.board.width*j);
-                ctx.lineTo(-5+305*i,235-250/this.board.width*j);
+                ctx.moveTo(-255+305*i,235-250/10*j);
+                ctx.lineTo(-5+305*i,235-250/10*j);
                 ctx.fill();
                 ctx.stroke();
             }
