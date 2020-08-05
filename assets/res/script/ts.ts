@@ -38,30 +38,48 @@ export class Login extends cc.Component {
     @property(cc.Prefab)
     isSureRegister_prefab:cc.Prefab;//注册成功
 
+    password: string;
+    ID: number; 
+
     
 
-    // onLoad () {}
-
-
-    start () {
-
-        DATA.init();
+    onLoad ()
+    {
         
+    }
 
+
+    start ()
+    {
+        DATA.init();
         DATA.Login.loginCallback = data =>
         {
-            cc.log(data);
+
             if (data.ok)
             {
                 // 登录成功
                 DATA.rid = data.rid;
                 DATA.record = data.record;
+                cc.sys.localStorage.setItem("ID",DATA.uid);
+                let node = cc.find("Canvas/LoginBackGround");
+                let check = node.getChildByName("remPassword").getComponent(cc.Toggle);
+                cc.sys.localStorage.setItem("remPassword",check.isChecked);
+                if (check.isChecked == true)
+                {
+                    cc.sys.localStorage.setItem("password",this.password); 
+                }
+
+                check = node.getChildByName("autoLogin").getComponent(cc.Toggle);
+                cc.sys.localStorage.setItem("autoLogin",check.isChecked);
                 if (DATA.record)
                 {
                     cc.director.loadScene("MatchingGameView"); // 加载游戏场景
                 }
                 else
+                {
                     cc.director.loadScene("GameHallView",this.showID);
+                }
+
             }
             else
             {
@@ -78,6 +96,7 @@ export class Login extends cc.Component {
             {
                 // 注册成功
                 this.tips("注册成功， 你的ID是" + data.uid);
+                cc.sys.localStorage.setItem("ID",data.uid);
                 cc.find("Canvas/SucceedRegister").active = true;
                 let label = cc.find("Canvas/SucceedRegister/SucceedRegisterLayout").children[0].getComponent(cc.Label);
                 label.string = "注册成功,ID:" + data.uid;
@@ -89,7 +108,63 @@ export class Login extends cc.Component {
             }
         };
 
+        this.ID =  parseInt(cc.sys.localStorage.getItem("ID") || "0") ;
+        this.password = cc.sys.localStorage.getItem("password") || "";
+
+        if (this.ID) this.loginAccount.string = this.ID.toString();
+
+        let autoLogin = cc.sys.localStorage.getItem("autoLogin")  == "true";
+
+        if(autoLogin && this.password != "")
+        {
+            let node = cc.find("Canvas/LoginBackGround");
+            let check = node.getChildByName("autoLogin").getComponent(cc.Toggle);
+            check.isChecked = true;
+            DATA.uid = this.ID;
+            DATA.Login.wsopenCallback = ()=>
+            {
+                DATA.ws.send({desc: "signin", data: {uid:this.ID, password: this.password}});
+                DATA.Login.wsopenCallback = null;
+            }  
+        }
         
+        let remPassword = cc.sys.localStorage.getItem("remPassword")  == "true";
+        if(remPassword)
+        {
+            let node = cc.find("Canvas/LoginBackGround");
+            let check = node.getChildByName("remPassword").getComponent(cc.Toggle);
+            check.isChecked = true;
+            this.loginPassword.string = this.password;
+        }     
+    }
+
+    Change()
+    {
+        this.password = "";
+    }
+
+
+
+    //记住密码
+    rememberPassword(event)
+    {
+        if(event.isChecked == false)
+        {
+            let node = cc.find("Canvas/LoginBackGround");
+            let check = node.getChildByName("autoLogin").getComponent(cc.Toggle);
+            check.isChecked = false;
+        }
+    }
+
+    //自动登录
+    autoLogin(event)
+    {
+        if(event.isChecked == true)
+        {
+            let node = cc.find("Canvas/LoginBackGround");
+            let check = node.getChildByName("remPassword").getComponent(cc.Toggle);
+            check.isChecked = true;
+        }
     }
 
     //从初始界面点击注册 切换到注册界面
@@ -101,25 +176,28 @@ export class Login extends cc.Component {
 
         node = cc.find("Canvas/RegisterBackGround");
         node.active = true; 
+
+        node = cc.find("Canvas/PasswordError");
+        node.active = false; 
+
+        node = cc.find("Canvas/warnLabel");
+        node.active = false;
     }
 
     //从注册界面注册成功后返回登录界面
     onClickIsSureButtonToLoginView()
     {
-        //cc.director.loadScene("LoginView");
-        cc.find("Canvas/SucceedRegister").active = false;
-
-        let node = cc.find("Canvas/RegisterBackGround");
-        node.active = false;
- 
-        node = cc.find("Canvas/LoginBackGround");
-        node.active = true;
+        cc.director.loadScene("LoginView");
     }
 
     //登录界面点击确定
     onClickIsSureOfLoginView()
     {
         // this.onClickIsSureButtonToGameHallView();
+        let node = cc.find("Canvas/PasswordError");
+        node.active = false;
+        node = cc.find("Canvas/warnLabel");
+        node.active = false;
         this.getAccountAndPassword();
     }
 
@@ -146,20 +224,27 @@ export class Login extends cc.Component {
     //在登陆界面获得输入的账号和密码
     getAccountAndPassword()
     {
-        //将用户名和密码存储到全局变量
-        var uid:number|string = this.loginAccount.string,
-            password = this.loginPassword.string;
-        // 检查uid是否是数字  这里假设是
 
-        uid = parseInt(uid);
-        password = md5pw(password);
-        if (password.length === 32) {
-            DATA.uid = uid;
-            DATA.myUid = uid;
-            DATA.ws.send({desc: "signin", data: {uid: uid, password: password}});
+        if(this.password == "")
+        {
+            this.ID = parseInt(this.loginAccount.string);
+            // 用id登录
+            this.password = md5pw(this.loginPassword.string);
+        }
+
+        
+        if (this.password != "")
+        {
+            DATA.uid = this.ID;
+            DATA.ws.send({desc: "signin", data: {uid:this.ID, password: this.password}});
         }
         else 
+        {
             this.tips("密码不合格[长度6~16, 包含字母、数字]!");
+            let node = cc.find("Canvas/warnLabel");
+            node.active = true;       
+        }
+            
     }
 
     tips(msg:string) {

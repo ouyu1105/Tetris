@@ -120,6 +120,7 @@ class GRecord{
     }
     play () {
         if (this._status == GRecord.Paused) {
+            this._status = GRecord.Playing;
             this._movePtr();
         } else if (this._status == GRecord.Ready) {
             this.restart();

@@ -7,7 +7,7 @@ const COLORS=[
     cc.Color.GREEN,
     cc.Color.YELLOW,
     cc.Color.RED,
-    cc.Color.GRAY,
+    cc.Color.MAGENTA,
     cc.Color.CYAN,
     cc.Color.ORANGE
 ];
@@ -44,17 +44,44 @@ export class recordGame extends cc.Component {
     img: cc.SpriteFrame;
 
     speed = 1;
-    
+
+    record = new GRecord();
+
+    ready= false;
 
     onLoad ()
     { 
         let x,y;
         DATA.init();
-        let record = new GRecord();
-        record.setSpeed(this.speed);
+       
+        
+        this.record.setSpeed(this.speed);
 
-        record.on("gameStart",(data)=>
+        this.record.on("gameStart",(data)=>
         {
+            let node5 = new cc.Node();
+            let timeLabel = node5.addComponent(cc.Label);
+            timeLabel.node.x = 640;
+            timeLabel.node.y = 380;
+            timeLabel.fontSize = 55; 
+            timeLabel.node.color = cc.color(255,255,255); 
+            timeLabel.string = "3";
+            cc.director.getScene().addChild(node5);
+            let countdown = 3;//倒计时时间
+            let it = setInterval(() => {
+                if(countdown >= 1)
+                {
+                    countdown--;
+                    timeLabel.string = countdown.toString();
+                    if(countdown == 0 )
+                    {
+                        clearInterval(it);
+                        node5.destroy();
+                        this.ready = true;
+                    }
+                }
+            }, 1000);
+            
             for(let i=0;i<12;i+=3)
             {
                 DATA.information[data.unn[i]] = {};
@@ -89,6 +116,7 @@ export class recordGame extends cc.Component {
                 info.levelLabel = node.addComponent(cc.Label);
                 cc.director.getScene().addChild(node);
                 node.setContentSize(1280,640);
+ 
             }
     
             let drawXStart = 397;
@@ -108,6 +136,7 @@ export class recordGame extends cc.Component {
                     DATA.information[k].drawX = drawXStart;
                     drawXStart += 305;
                 }
+                
             }
     
             
@@ -142,12 +171,13 @@ export class recordGame extends cc.Component {
                     }
     
                 });      
-            });   
+            });
+               
     
 
         });
 
-        record.on("newDropping",(data)=>
+        this.record.on("newDropping",(data)=>
         {
             var DATA_UID = DATA.information[data.uid];
             DATA_UID.Now = DATA_UID.Next;
@@ -177,8 +207,8 @@ export class recordGame extends cc.Component {
             DATA_UID.levelLabel.string = DATA_UID.level.toString();
         });
 
-        let s = [0,50,150,300,950];
-        record.on("reduce",(data)=>
+        let s = [0,50,150,450,950];
+        this.record.on("reduce",(data)=>
         {
             var rd = DATA.arrayToMap(data.reduce);
             var DATA_UID = DATA.information[data.uid];
@@ -201,9 +231,9 @@ export class recordGame extends cc.Component {
             DATA_UID.levelLabel.string = DATA_UID.level.toString();  
         });
 
-        record.on("posChanged",(data)=>
+        this.record.on("posChanged",(data)=>
         {
-            record.setSpeed(this.speed);
+            this.record.setSpeed(this.speed);
             let isNew = Math.floor(data.pos / 65536);
             let DATA_UID = DATA.information[data.uid];
 
@@ -227,7 +257,7 @@ export class recordGame extends cc.Component {
             });    
         });
 
-        record.on("droppingChanged",(data)=>
+        this.record.on("droppingChanged",(data)=>
         {
             let DATA_UID = DATA.information[data.uid];
             BlockShape[DATA_UID.Now].forEach(v => {
@@ -251,11 +281,16 @@ export class recordGame extends cc.Component {
             });
         });
 
-        record.on("gameOver",(data)=>
+        let overs = [];
+        this.record.on("gameOver",(data)=>
         {
-            cc.log("gameover:"+data.uid);
             if(data.uid == 0 )
             {
+
+                overs.forEach(node => {
+                    node.destroy();
+                });
+                cc.find("Canvas/buttons").active = false;
                 let score:Array<number> = new Array<number>();
                 let id:Array<number> = new Array<number>();
 
@@ -337,11 +372,23 @@ export class recordGame extends cc.Component {
                 cc.find("Canvas/EndLayout").active = true;
 
             }
+            else
+            {
+                let node = new cc.Node();
+                let overLabel = node.addComponent(cc.Label);
+                overLabel.string = "Game Over";
+                node.x = DATA.information[data.uid].drawX+125;
+                node.y = 360;
+                overLabel.fontSize = 40;
+                cc.director.getScene().addChild(node);
+                overs.push(node);
+            }
         });
 
 
-        record.load(DATA.record);
-        record.play();
+        this.record.load(DATA.record);
+        DATA.record = "";
+        this.record.play();
         
 
         
@@ -359,9 +406,31 @@ export class recordGame extends cc.Component {
         cc.director.loadScene("GameHallView",this.showID);
     }
 
-    onClickSpeed()
+    onClickButton(target,data)
     {
-        this.speed++;
+        if (!this.ready) return;
+        if(data == "speedUp")
+        {
+            this.speed++;
+        }
+        else if(data == "speedDown")
+        {
+            if(this.speed >= 2)
+                this.speed--;
+        }
+        else if(data == "pause")
+        {
+            this.record.pause();
+        }
+        else if(data == "continue")
+        {
+            this.record.play();
+        }
+        else if(data == "back")
+        {
+            this.record.clear();
+            cc.director.loadScene("GameHallView",this.showID);
+        }
     }
 
     showID()
@@ -401,11 +470,11 @@ export class recordGame extends cc.Component {
                 node.color = info.nextColor;
             });
 
-            info.scoreLabel .string = "0";
-            info.scoreLabel .fontSize = 30;
-            info.scoreLabel .node.x = 180 + info.drawX;
-            info.scoreLabel .node.y = 30;
-            info.scoreLabel .node.color = cc.color(255,255,255);
+            info.scoreLabel.string = "0";
+            info.scoreLabel.fontSize = 30;
+            info.scoreLabel.node.x = 180 + info.drawX;
+            info.scoreLabel.node.y = 30;
+            info.scoreLabel.node.color = cc.color(255,255,255);
 
             //计算等级并显示
             info.levelLabel.string = "1";

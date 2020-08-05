@@ -16,7 +16,7 @@ const COLORS=[
     cc.Color.GREEN,
     cc.Color.YELLOW,
     cc.Color.RED,
-    cc.Color.GRAY,
+    cc.Color.MAGENTA,
     cc.Color.CYAN,
     cc.Color.ORANGE
 ];
@@ -96,6 +96,41 @@ export class Game extends cc.Component {
         cc.director.getScene().addChild(node1);
         node.setContentSize(1280,640);
         node1.setContentSize(1280,640);
+
+        //速度大于0再开始 
+        if(model != null)
+        {
+            ScoreLabel.string = "0";
+            ScoreLabel.fontSize = 30;
+            ScoreLabel.node.x = 560;
+            ScoreLabel.node.y = 50;
+            ScoreLabel.node.color = cc.color(255,255,255);
+    
+            LevelLabel.string = "1";
+            LevelLabel.fontSize = 30;   
+            LevelLabel.node.x = 700;
+            LevelLabel.node.y = 50;
+            LevelLabel.node.color = cc.color(255,255,255);
+
+            let node5 = new cc.Node();
+            let timeLabel = node5.addComponent(cc.Label);
+            timeLabel.node.x = 640;
+            timeLabel.node.y = 380;
+            timeLabel.fontSize = 55; 
+            timeLabel.string = '3';
+            cc.director.getScene().addChild(node5);
+            this.countdown = 3;//倒计时时间
+            if(this.countdown >= 0)
+            {
+                //计时器 间隔1s
+                this.schedule(function()
+                {
+                   this.DoingSomething(timeLabel);
+                },1);
+            }
+            this.drawBoard();
+
+        }
 
 
         //在棋盘显示方块 
@@ -181,7 +216,7 @@ export class Game extends cc.Component {
         });
 
         //消除方块
-        let s = [0,50,150,300,950];//消除[]行对应的分数
+        let s = [0,50,150,450,950];//消除[]行对应的分数
         this.board.on('reduce', rd => {
             this.board.pause(); 
             rd.forEach(v => {
@@ -292,25 +327,7 @@ export class Game extends cc.Component {
 
     start()
     {
-        //速度大于0再开始 
-        if(model != null)
-        {
-            let node5 = new cc.Node();
-            let timeLabel = node5.addComponent(cc.Label);
-            cc.director.getScene().addChild(node5);
-            this.countdown = 5;//倒计时时间
-            if(this.countdown >= 0)
-            {
-                //计时器 间隔1s
-                this.schedule(function()
-                {
-                   this.DoingSomething(timeLabel);
-                },1);
-            }
-            this.drawBoard();
-
-        }
-        cc.log("speed:"+this.board.speed);
+        
     }
 
     update(dt)
@@ -326,15 +343,31 @@ export class Game extends cc.Component {
         {
             this.countdown--;
             timeLabel.string = this.countdown.toString();
-            timeLabel.node.x = 640;
-            timeLabel.node.y = 380;
-            timeLabel.fontSize = 55; 
+  
             if(this.countdown == 0)
             {       
+                let x,y;
                 timeLabel.destroy();//倒计时结束 销毁文本节点
                 this.tag = true;
                 this.board.newDropping(this.now);
+                for(let i=0;i<4;i++)
+                {   
+                    y = BlockShape[this.now][i][0];
+                    x = BlockShape[this.now][i][1];
+                    this.nowContainer[i].setPosition(570+x*350/this.board.height,659-y*350/this.board.height);
+                    let spr = this.nowContainer[i].getComponent(cc.Sprite);
+                    spr.node.opacity = 255;
+                    spr.node.color = this.COLOR; 
 
+                    y = BlockShape[this.next][i][0];
+                    x = BlockShape[this.next][i][1];
+                    this.nextContainer[i].setPosition(702+x*350/this.board.height,659-y*350/this.board.height);
+                    spr = this.nextContainer[i].getComponent(cc.Sprite);
+                    spr.node.opacity = 255;
+                    spr.node.color = this.NEXTCOLOR; 
+                }
+
+    
             }
         }
     }
@@ -485,7 +518,7 @@ export class Game extends cc.Component {
                //cc.log("back");
                return;
            }
-           cc.director.loadScene("PracticeGameView");    
+           cc.director.loadScene("PracticeGameView");
     }
 
  

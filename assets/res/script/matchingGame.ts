@@ -16,7 +16,7 @@ const COLORS=[
     cc.Color.GREEN,
     cc.Color.YELLOW,
     cc.Color.RED,
-    cc.Color.GRAY,
+    cc.Color.MAGENTA,
     cc.Color.CYAN,
     cc.Color.ORANGE
 ];
@@ -87,6 +87,8 @@ export class MatchingGame extends cc.Component {
 
     sta = 1;
     huanChong = [];
+
+    overs = [];
     
 
 
@@ -97,32 +99,7 @@ export class MatchingGame extends cc.Component {
     init()
     {
         let x,y;
-        //初始化显示now、next的容器
-        for (var k in DATA.information) {
-            let info = DATA.information[k];
-            info.nowContainer = [new cc.Node(), new cc.Node(),new cc.Node(),new cc.Node()];
-            info.nextContainer = [new cc.Node(), new cc.Node(),new cc.Node(),new cc.Node()];
-            info.nowContainer.forEach(node => {
-                node.addComponent(cc.Sprite);
-            });
-            info.nextContainer.forEach(node => {
-                node.addComponent(cc.Sprite);
-            });
-            let node = new cc.Node();
-            info.scoreLabel = node.addComponent(cc.Label);
-            cc.director.getScene().addChild(node);
-            node.setContentSize(1280,640);
-            let node1 = new cc.Node();
-            info.levelLabel = node1.addComponent(cc.Label);
-            cc.director.getScene().addChild(node1);
-            node1.setContentSize(1280,640);
-        }
         
-        model = "match";
-        this.getSpeed(model);
-
-        //创建棋盘精灵和now、next精灵
-
         var drawXStart = 397;
         for (var k in DATA.information) {
 
@@ -134,8 +111,6 @@ export class MatchingGame extends cc.Component {
 
             DATA.information[k].container = Array(...Array(20)).map(() => Array(...Array(10)).map(() => new cc.Node()));
 
-            
-
             if (k == DATA.uid) 
                 DATA.information[k].drawX = 37;
             else
@@ -143,7 +118,50 @@ export class MatchingGame extends cc.Component {
                 DATA.information[k].drawX = drawXStart;
                 drawXStart += 305;
             }
+
+   
         }
+
+        //初始化显示now、next的容器
+        for (var k in DATA.information) {
+            let info = DATA.information[k];
+            info.nowContainer = [new cc.Node(), new cc.Node(),new cc.Node(),new cc.Node()];
+            info.nextContainer = [new cc.Node(), new cc.Node(),new cc.Node(),new cc.Node()];
+            info.nowContainer.forEach(node => {
+                node.addComponent(cc.Sprite);
+            });
+            info.nextContainer.forEach(node => {
+                node.addComponent(cc.Sprite);
+            });
+
+
+            let node = new cc.Node();
+            info.scoreLabel = node.addComponent(cc.Label);
+            cc.director.getScene().addChild(node);
+            node.setContentSize(1280,640);
+            let node1 = new cc.Node();
+            info.levelLabel = node1.addComponent(cc.Label);
+            cc.director.getScene().addChild(node1);
+            node1.setContentSize(1280,640);
+            info.scoreLabel.string = "0";
+            info.scoreLabel.fontSize = 30;
+            info.scoreLabel.node.x = 180 + info.drawX;
+            info.scoreLabel.node.y = 30;
+            info.scoreLabel.node.color = cc.color(255,255,255);
+
+            //计算等级并显示
+            info.levelLabel.string = "1";
+            info.levelLabel.fontSize = 30;   
+            info.levelLabel.node.x = 30 + info.drawX;
+            info.levelLabel.node.y = 30;
+            info.levelLabel.node.color = cc.color(255,255,255);
+         
+        }
+        
+        model = "match";
+        this.getSpeed(model);
+
+        //创建棋盘精灵和now、next精灵
 
         
         cc.assetManager.loadBundle('texture',(err, bundle) => {
@@ -195,7 +213,7 @@ export class MatchingGame extends cc.Component {
         this.board.on('blockRm', st => {
             st.forEach(v => {
                     y = v[0], x = v[1];
-                    DATA.information[DATA.myUid].container[y][x].opacity = 0;
+                    DATA.information[DATA.uid].container[y][x].opacity = 0;
              });
         });
 
@@ -205,7 +223,7 @@ export class MatchingGame extends cc.Component {
         });
 
         //消除方块
-        let s = [0,50,150,300,950];//消除[]行对应的分数
+        let s = [0,50,150,450,950];//消除[]行对应的分数
         this.board.on('reduce', rd => {
             this.board.pause(); 
             DATA.ws.send({desc: "reduce", data: {reduce: DATA.mapToArray(rd)}});
@@ -380,25 +398,29 @@ export class MatchingGame extends cc.Component {
                 let tempLevel = this.getLevel(DATA_UID.score);
                 
                 //自己升级不加速
-                if (tempLevel > DATA_UID.level && data.uid != DATA.uid)
+                if (tempLevel > DATA_UID.level)
                 {
-                    //判断自己是否已经处于加速状态
-                    if(DATA.information[DATA.uid].debuffTag == false)
-                    {
-                        this.board.speed *= 0.8;
-                        setTimeout(() => {
-                            this.board.speed /= 0.8;
-                            DATA.information[DATA.uid].debuffTag = false;
-                        }, 10000);
-                        DATA.information[DATA.uid].debuffTag = true;
-                    }
-                    else{}
                     DATA_UID.level = tempLevel;
+                    cc.log(this.board.speed);
+                    if (data.uid != DATA.uid) {
+                        if(DATA.information[DATA.uid].debuffTag == false)
+                        {
+                            DATA.information[DATA.uid].debuffTag = true;
+                            this.board.speed *= 0.4;
+                            setTimeout(() => {
+                                DATA.information[DATA.uid].debuffTag = false;
+                                this.board.speed /= 0.4;
+                            }, 10000);
+                        }
+                    }
+                    else{
+                        this.board.speed = SPEED[DATA_UID.level];
+                        if (DATA.information[DATA.uid].debuffTag == true)
+                            this.board.speed *= 0.4;  
+                    }
+                    cc.log(this.board.speed);
                 }
-                else
-                {
-                    this.board.speed = SPEED[DATA_UID.level];
-                }  
+ 
                 
 
                 DATA_UID.scoreLabel.string = DATA_UID.score.toString();
@@ -460,26 +482,30 @@ export class MatchingGame extends cc.Component {
                 });
 
                 let tempLevel = this.getLevel(DATA_UID.score);
-                //自己升级不加速
-                if (tempLevel > DATA_UID.level && data.uid != DATA.uid)
+                if (tempLevel > DATA_UID.level)
                 {
-                    //判断自己是否已经处于加速状态
-                    if(DATA.information[DATA.uid].debuffTag == false)
-                    {
-                        this.board.speed *= 0.8;
-                        setTimeout(() => {
-                            this.board.speed /= 0.8;
-                            DATA.information[DATA.uid].debuffTag = false;
-                        }, 10000);
-                        DATA.information[DATA.uid].debuffTag = true;
-                    }
-                    else{}
                     DATA_UID.level = tempLevel;
+                    if (data.uid != DATA.uid) {
+                        if(DATA.information[DATA.uid].debuffTag == false)
+                        {
+                            DATA.information[DATA.uid].debuffTag = true;
+                            this.board.speed *= 0.5;
+                            setTimeout(() => {
+                                DATA.information[DATA.uid].debuffTag = false;
+                                this.board.speed /= 0.5;
+                            }, 10000);
+                        }
+                    }
+                    else{
+                        this.board.speed = SPEED[DATA_UID.level];
+                        if (DATA.information[DATA.uid].debuffTag == true)
+                            this.board.speed *= 0.5;  
+                    }
+                    cc.log(this.board.speed);
                 }
-                else
-                {
-                    this.board.speed = SPEED[DATA_UID.level];
-                }    
+
+
+  
 
                 DATA_UID.scoreLabel.string = DATA_UID.score.toString();
                 DATA_UID.levelLabel.string = DATA_UID.level.toString();
@@ -494,6 +520,7 @@ export class MatchingGame extends cc.Component {
         }
 
         //结束
+        
         DATA.Game.gameOverCallback = data =>
         {
             if(this.sta == 0)
@@ -504,11 +531,14 @@ export class MatchingGame extends cc.Component {
             }
             if(data.ok)
             {
-                //根据uid判断是谁结束 在对应界面画出gameover
                 cc.log("gameover:"+data.uid);
-                //所有人都结束
+
                 if(data.uid == 0 )
                 {
+                    this.overs.forEach(node => {
+                        node.destroy();
+                    });
+                    this.overs = [];
                     let score:Array<number> = new Array<number>();
                     let id:Array<number> = new Array<number>();
 
@@ -591,6 +621,17 @@ export class MatchingGame extends cc.Component {
                     cc.find("Canvas/EndLayout").active = true;
 
                 }
+                else
+                {
+                    let node = new cc.Node();
+                    let overLabel = node.addComponent(cc.Label);
+                    overLabel.string = "Game Over";
+                    overLabel.node.x = DATA.information[data.uid].drawX+125;
+                    overLabel.node.y = 360;
+                    overLabel.fontSize = 40;
+                    cc.director.getScene().addChild(node);
+                    this.overs.push(node);
+                }
             }
             else{}
         }
@@ -612,6 +653,7 @@ export class MatchingGame extends cc.Component {
         {
             this.sta = 0; 
             record = new GRecord(DATA.record);
+            DATA.record = "";
             record.setSpeed(0);
             record.on("gameStart",(data)=>
             {
@@ -629,7 +671,6 @@ export class MatchingGame extends cc.Component {
                     DATA.information[data.unn[i]].level = 1;
                      
                 }
-                cc.log("now:"+DATA.information[DATA.uid].Now,"next:"+DATA.information[DATA.uid].Next); 
 
                 this.init();
             });
@@ -649,11 +690,9 @@ export class MatchingGame extends cc.Component {
 
                 if(data.uid == DATA.uid)
                 {
-                    cc.log("newdropping",DATA_UID.Now);
                     this.board.dropping = DATA_UID.Now;
                     this.board.yPos = 0;
                     this.board.xPos = 4;
-                    cc.log("board", this.board.dropping);
                 }
 
                 DATA_UID.nowContainer.forEach((node, i) => {
@@ -674,7 +713,7 @@ export class MatchingGame extends cc.Component {
                 DATA_UID.levelLabel.string = DATA_UID.level.toString();
             });
 
-            let s = [0,50,150,300,950];
+            let s = [0,50,150,450,950];
             record.on("reduce",(data)=>
             {
                 var rd = DATA.arrayToMap(data.reduce);
@@ -791,8 +830,113 @@ export class MatchingGame extends cc.Component {
                 });
             });
 
+            record.on("gameOver",(data)=>{
+                if(data.uid == 0 )
+                {
+                    this.overs.forEach(node => {
+                        node.destroy();
+                    });
+                    this.overs = [];
+                    let score:Array<number> = new Array<number>();
+                    let id:Array<number> = new Array<number>();
+
+                    //对每个人的分数进行排序 然后显示信息
+                    for(let k in DATA.information)
+                    {
+                        let info = DATA.information[k];
+                        score.push(info.score);
+                        id.push(info.id);
+                    }
+
+                    //对score对应id冒泡排序
+                    let tempScore,tempId;
+                    for(let i=0;i<score.length-1;i++)
+                    {
+                        for(let j=0;j<score.length-1-i;j++)
+                        {
+                            if(score[j]<score[j+1])
+                            {
+                                tempScore = score[j+1];
+                                score[j+1] = score[j];
+                                score[j] = tempScore;
+                                
+                                tempId = id[j+1];
+                                id[j+1] = id[j];
+                                id[j] = tempId;
+                            }
+                        }
+                    }
+ 
+                    for(let i=0;i<4;i++)
+                    {
+                        let node = new cc.Node();
+                        let idLabel = node.addComponent(cc.Label);
+                        idLabel.string = id[i].toString();
+                        idLabel.node.x = 440;
+                        idLabel.node.y = 510 - 90*i;
+                        idLabel.fontSize = 35;
+                        idLabel.node.color = cc.color(255,255,255);
+                        cc.director.getScene().addChild(node);
+
+                        let node1 = new cc.Node();
+                        let LevelLabel = node1.addComponent(cc.Label);
+                        LevelLabel.string = DATA.information[id[i]].level;
+                        LevelLabel.node.x = 640;
+                        LevelLabel.node.y = 510 - 90*i;
+                        LevelLabel.fontSize = 35;
+                        LevelLabel.node.color = cc.color(255,255,255);
+                        cc.director.getScene().addChild(node1);
+
+                        let node2 = new cc.Node();
+                        let ScoreLabel = node2.addComponent(cc.Label);
+                        ScoreLabel.string = score[i].toString();
+                        ScoreLabel.node.x = 860;
+                        ScoreLabel.node.y = 510 - 90*i;
+                        ScoreLabel.fontSize = 35;
+                        ScoreLabel.node.color = cc.color(255,255,255);
+                        cc.director.getScene().addChild(node2);
+                    }
+                    for (var k in DATA.information) {
+
+                        DATA.information[k].container &&  DATA.information[k].container.forEach(v => {
+                            v.forEach( v => {
+                                    v.destroy();
+                            });
+                        });
+                    }
+
+                    for (var k in DATA.information) {
+                        DATA.information[k].nowContainer &&  DATA.information[k].nowContainer.forEach(v => {
+                            v.destroy();
+                        });
+                        DATA.information[k].nextContainer &&  DATA.information[k].nextContainer.forEach(v => {    
+                            v.destroy();
+                        });
+
+                    }
+                    
+
+                    cc.find("Canvas/EndLayout").active = true;
+
+                }
+                else
+                {
+                    let node = new cc.Node();
+                    let overLabel = node.addComponent(cc.Label);
+                    overLabel.string = "Game Over";
+                    overLabel.node.x = DATA.information[data.uid].drawX+125;
+                    overLabel.node.y = 360;
+                    overLabel.fontSize = 40;
+                    cc.director.getScene().addChild(node);
+                    this.overs.push(node);
+                    if(data.uid == DATA.uid)
+                    {
+                        this.board.dropping = null;
+                    }
+                }
+            })
+
             record.on("recordOver",()=>{
-                cc.log(this.board);
                 this.board.play();
                 this.sta = 1;
                 this.huanChong.forEach(obj =>{

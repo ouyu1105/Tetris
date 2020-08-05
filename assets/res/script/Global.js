@@ -89,6 +89,7 @@ DATA.init = function() {
 
     ws.on("wsopen", () => {
         console.log("ws 启动了");
+        DATA.Login.wsopenCallback && DATA.Login.wsopenCallback();
     });
 
     ws.on("signin", data => {
@@ -98,6 +99,10 @@ DATA.init = function() {
     ws.on("signup", data => {
         DATA.Login.signupCallback && DATA.Login.signupCallback(data);
     });
+
+    ws.on("logout", () =>{
+        DATA.Login.logoutCallback && DATA.Login.logoutCallback();
+    })
 
     ws.on("matching", data => {
         DATA.Matching.matchingCallback && DATA.Matching.matchingCallback(data);
@@ -168,6 +173,7 @@ DATA.init = function() {
     {
         DATA.crowdCallback && DATA.crowdCallback();
     });
+
 
 
     DATA.ws = ws;

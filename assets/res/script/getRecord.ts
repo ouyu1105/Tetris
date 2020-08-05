@@ -19,7 +19,7 @@ export class getRecord extends cc.Component {
             if(data.ok)
             {
                 DATA.record = data.record;
-                if (data.record.length) 
+                if (data.record.length)
                     cc.director.loadScene("RecordGameView");
             }
         }
@@ -55,6 +55,7 @@ export class getRecord extends cc.Component {
             {
                 DATA.ids.forEach((recordId, i) =>
                 {
+                    if (i >= 10) return;
                     let sprNode = new cc.Node();
                     let spr = sprNode.addComponent(cc.Sprite);
                     spr.spriteFrame = img;

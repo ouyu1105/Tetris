@@ -22,6 +22,8 @@ export class Matching extends cc.Component {
     Matching_Prefab:cc.Prefab;//匹配预制体
 
     model:string = null;//传递速度的全局变量
+
+    matchingTag:boolean = false;//标记是否在匹配
     
   
 
@@ -29,6 +31,9 @@ export class Matching extends cc.Component {
     FromGameHallToMatching()
     {
         //向服务器申请匹配
+        if(this.matchingTag)
+            return;
+        this.matchingTag = true;
         DATA.ws.send({desc: "matching"});
         //cc.log("申请匹配");
     }
@@ -52,6 +57,7 @@ export class Matching extends cc.Component {
     onClickSure()
     {
         DATA.ws.send({desc:"matchingSure"});
+
     }
 
     //从游戏大厅进入人机对战
@@ -64,6 +70,8 @@ export class Matching extends cc.Component {
     //从游戏大厅进入练习模式难度选择
     FromGameHallToPracticeModel()
     {
+        if(this.matchingTag)
+            return;
         DATA.mod = DATA.MOD[0];
         cc.director.loadScene("ModelView");
     }
@@ -71,26 +79,51 @@ export class Matching extends cc.Component {
     //进入回放界面
     onClickToRecord()
     {
+        if(this.matchingTag)
+            return;
         DATA.ws.send({desc:"recordList"});
+    }
+
+    //退出登录
+    exit()
+    {
+        DATA.ws.send({desc:"logout"}); 
+    }
+
+    closeAutoLogin()
+    {
+        let node = cc.find("Canvas/LoginBackGround");
+        let check = node.getChildByName("autoLogin").getComponent(cc.Toggle);
+        check.isChecked = false;
+    }
+
+    noRecord()
+    {
+        cc.find("Canvas/noRecord").active = false;
     }
 
     onLoad()
     {
-        DATA.init();
     }
+
+
     
 
     start ()
     {
-        let tag = false; //标记是否已经匹配成功
-        //DATA.init();
+
+        DATA.information = {};
+        DATA.init();
 
         //匹配回调 成功则进入匹配
+        DATA.Login.logoutCallback = () =>
+        {
+            cc.sys.localStorage.setItem("autoLogin","false");
+            cc.director.loadScene("LoginView",this.closeAutoLogin);
+        }
         DATA.Matching.matchingCallback = data =>
         {
             //cc.log("进入匹配");
-            if(tag == true)
-                return ;
             if(data.ok)
             {
                 //弹匹配框：正在匹配.....背景虚化一下
@@ -98,7 +131,6 @@ export class Matching extends cc.Component {
                 node.active = true;
                 node = cc.find("Canvas/GameHallBackGround");
                 node.opacity = 200;
-                //this.onClickCancelMatching();
             }
             else{}  
         }
@@ -108,15 +140,20 @@ export class Matching extends cc.Component {
         {
             //匹配框出现确定 显示确定几人
             //uids[..4人] 用于记录每个棋盘对应的人
-            tag = true;
             let node = cc.find("Canvas/matchingLayout");
-            if(node.active == true)
-            {
+            node.active = false;
 
-                node.active = false;
-            }
             node = cc.find("Canvas/matchingSucceedLayout");
-            node.active = true;    
+            node.active = true;
+
+            node = cc.find("Canvas/matchingSucceedLayout/isSure");
+            node.active = false;
+
+            node = cc.find("Canvas/matchingSucceedLayout/sureMatching");
+            node.active = true;
+
+            node = cc.find("Canvas/GameHallBackGround");
+            node.opacity = 200;
         }
 
         //匹配确定回调
@@ -127,6 +164,16 @@ export class Matching extends cc.Component {
                 DATA.uidNum++;
                 //确定人数增加
                 cc.log("点击确定人数:"+DATA.uidNum);
+
+                if(data.uid == DATA.uid)
+                {
+                    
+                    let node = cc.find("Canvas/matchingSucceedLayout/isSure");
+                    node.active = true;
+
+                    node = cc.find("Canvas/matchingSucceedLayout/sureMatching");
+                    node.active = false;
+                }
             }
             else{}
         }
@@ -134,7 +181,7 @@ export class Matching extends cc.Component {
         //匹配失败回调
         DATA.Matching.matchingCancelCallback = () =>
         {
-            tag = false;
+            this.matchingTag = false;
             //匹配结束 匹配框消失
             let node = cc.find("Canvas/matchingSucceedLayout");
             node.active = false;
@@ -146,7 +193,7 @@ export class Matching extends cc.Component {
         //玩家取消
         DATA.Matching.playerCancelCallback = data =>
         {
-            tag = false;
+            this.matchingTag = false;
             if(data.ok)
             {
                 DATA.uidNum = 0;
@@ -162,7 +209,7 @@ export class Matching extends cc.Component {
         //游戏开始 存储uid，now，next
         DATA.Matching.gameStartCallback = data =>
         {
-            tag = false;
+            this.matchingTag = false;
             //cc.log(data.unn);
             //let startNowX = 437, startNextX = 592;
             //切换场景 存储
@@ -196,7 +243,15 @@ export class Matching extends cc.Component {
                     DATA.uid2s = data.uid2s;
                     DATA.uid3s = data.uid3s;
                     DATA.uid4s = data.uid4s;
-                    DATA.dates = data.dates;  
+                    DATA.dates = data.dates;
+                    DATA.ids.reverse();
+                    DATA.uid1s.reverse();
+                    DATA.uid2s.reverse();
+                    DATA.uid3s.reverse();
+                    DATA.uid4s.reverse();
+                    DATA.dates.reverse();
+
+
                     cc.director.loadScene("RecordView");
                 }
                 else
@@ -206,7 +261,8 @@ export class Matching extends cc.Component {
                     DATA.uid2s = [];
                     DATA.uid3s = [];
                     DATA.uid4s = [];
-                    DATA.dates = []; 
+                    DATA.dates = [];
+                    cc.find("Canvas/noRecord").active = true;
                 }
                 
 
