@@ -28,7 +28,7 @@ const LEVEL=[1,2,3,4,5,6,7,8,9,10];
 const SCORE=[100,300,600,1000,1500,2100,2800,3600,4500,6000];
 
 //定义等级对应速度
-const SPEED=[800,750,700,640,580,510,440,360,270,150];
+const SPEED=[800,800,750,700,640,580,510,440,360,270,150];
 
 //定义练习模式难度
 const MODEL=["hell","hard","normal","easy","match","yinxing"];
@@ -450,7 +450,7 @@ export class Game extends cc.Component {
         let ctx = this.node.getComponent(cc.Graphics);
         //画竖线
         ctx.lineWidth = 3;
-        
+
         for(let i = 0;i <= this.board.width;i++)
         {
             ctx.moveTo(-125+250/this.board.width*i,-250);

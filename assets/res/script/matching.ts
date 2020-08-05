@@ -9,7 +9,7 @@ const COLORS=[
     cc.Color.GREEN,
     cc.Color.YELLOW,
     cc.Color.RED,
-    cc.Color.GRAY,
+    cc.Color.MAGENTA,
     cc.Color.CYAN,
     cc.Color.ORANGE
 ];
@@ -80,6 +80,8 @@ export class Matching extends cc.Component {
     //申请进入排行榜
     onClickRank()
     {
+        if(this.matchingTag)
+            return;
         DATA.ws.send({desc:"rank"});
     }
 
@@ -99,10 +101,21 @@ export class Matching extends cc.Component {
     noRecord()
     {
         cc.find("Canvas/noRecord").active = false;
+
+        let node = cc.find("Canvas/GameHallBackGround");
+        node.opacity = 255;
     }
 
+    noRank()
+    {
+        cc.find("Canvas/noRank").active = false;
+
+        let node = cc.find("Canvas/GameHallBackGround");
+        node.opacity = 255;
+    }
     onLoad()
     {
+
     }
 
 
@@ -262,6 +275,8 @@ export class Matching extends cc.Component {
                     DATA.uid4s = [];
                     DATA.dates = [];
                     cc.find("Canvas/noRecord").active = true;
+                    let node = cc.find("Canvas/GameHallBackGround");
+                    node.opacity = 200;
                 }
                 
 
@@ -278,8 +293,14 @@ export class Matching extends cc.Component {
         DATA.rankCallback = data =>
         {
             //解码
-            if(!data.rank)  // Uint8Array
+            if(!data.rank)// Uint8Array
+            {
+                cc.find("Canvas/noRank").active = true;
+                let node = cc.find("Canvas/GameHallBackGround");
+                node.opacity = 200;
                 return ;
+            }
+                
             let getNumberFromUint8Array = (bin: Uint8Array, ptr: number): number => {
                 return bin[ptr] + bin[ptr+1]*256 + bin[ptr+2]*256*256 + bin[ptr+3]*256*256*256;
             }
@@ -314,7 +335,7 @@ export class Matching extends cc.Component {
                 maxScore = 0;
                 dataScores[maxPos] = 0;
             }
-            cc.log(data.rank,DATA.scores,DATA.rankUids);
+            cc.director.loadScene("RankView");
         }
     }
 

@@ -97,6 +97,9 @@ export class Login extends cc.Component {
                 // 注册成功
                 this.tips("注册成功， 你的ID是" + data.uid);
                 cc.sys.localStorage.setItem("ID",data.uid);
+                cc.sys.localStorage.setItem("password","");
+                cc.sys.localStorage.setItem("remPassword",false);
+                cc.sys.localStorage.setItem("autoLogin",false);
                 cc.find("Canvas/SucceedRegister").active = true;
                 let label = cc.find("Canvas/SucceedRegister/SucceedRegisterLayout").children[0].getComponent(cc.Label);
                 label.string = "注册成功,ID:" + data.uid;
