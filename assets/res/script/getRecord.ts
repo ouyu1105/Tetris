@@ -49,6 +49,7 @@ export class getRecord extends cc.Component {
     {
         let content = cc.find("Canvas/recordList/view/content");
 
+
         content.setContentSize(900, DATA.ids.length * 130);
         cc.assetManager.loadBundle('texture',(err, bundle) => {
             bundle.load('img',cc.SpriteFrame,(err,img)=>

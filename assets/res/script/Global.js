@@ -69,8 +69,6 @@ DATA.init = function() {
     DATA.rid = 0;
     DATA.uids = [0,0,0,0];
     DATA.uidNum = 0;
-    //DATA.unn = [0,0,0,0,0,0,0,0,0,0,0,0];
-    //DATA.next = 0;
     DATA.reduce = null;
     DATA.blocks = [0,0,0,0];
     DATA.ids = [];
@@ -79,10 +77,8 @@ DATA.init = function() {
     DATA.uid3s = [];
     DATA.uid4s = [];
     DATA.dates = [];
-    //DATA.now = -1;
-    //DATA.next = -1;
-    //DATA.Now = [-1,-1,-1,-1];
-    //DATA.Next = [-1,-1,-1,-1];
+    DATA.rankUids = [];
+    DATA.scores = [];
     DATA.information = {};
     DATA.record = undefined;
     
@@ -160,7 +156,6 @@ DATA.init = function() {
         DATA.Game.droppingChangedCallback && DATA.Game.droppingChangedCallback(data);
     });
 
-    //rc.on("gameOver gameStart newDropping reduce posChanged droppingChanged ")
     ws.on("recordList",data =>{
         DATA.Record.recordListCallback && DATA.Record.recordListCallback(data);
     });
@@ -173,6 +168,10 @@ DATA.init = function() {
     {
         DATA.crowdCallback && DATA.crowdCallback();
     });
+
+    ws.on("rank",data =>{
+        DATA.rankCallback && DATA.rankCallback(data);
+    })
 
 
 

@@ -60,13 +60,6 @@ export class Matching extends cc.Component {
 
     }
 
-    //从游戏大厅进入人机对战
-    FromGameHallToAI()
-    {
-        DATA.mod = DATA.MOD[1];
-        cc.director.loadScene("AIGameView");
-    }
-
     //从游戏大厅进入练习模式难度选择
     FromGameHallToPracticeModel()
     {
@@ -76,12 +69,18 @@ export class Matching extends cc.Component {
         cc.director.loadScene("ModelView");
     }
 
-    //进入回放界面
+    //申请进入回放界面
     onClickToRecord()
     {
         if(this.matchingTag)
             return;
         DATA.ws.send({desc:"recordList"});
+    }
+
+    //申请进入排行榜
+    onClickRank()
+    {
+        DATA.ws.send({desc:"rank"});
     }
 
     //退出登录
@@ -273,6 +272,49 @@ export class Matching extends cc.Component {
             {
                 cc.log("error");
             }
+        }
+        
+
+        DATA.rankCallback = data =>
+        {
+            //解码
+            if(!data.rank)  // Uint8Array
+                return ;
+            let getNumberFromUint8Array = (bin: Uint8Array, ptr: number): number => {
+                return bin[ptr] + bin[ptr+1]*256 + bin[ptr+2]*256*256 + bin[ptr+3]*256*256*256;
+            }
+            let dataUids = [];
+            let dataScores = [];
+            for (let i = 0; i < data.rank.length; i += 8) {
+                dataUids.push(getNumberFromUint8Array(data.rank, i));
+                dataScores.push(getNumberFromUint8Array(data.rank, i+4));
+            }
+            let maxScore = 0;
+            let maxPos = 0;
+            let length;
+
+            DATA.scores = [];
+            DATA.rankUids = [];
+
+            if( dataUids.length >= 10)
+                length = 10;
+            else
+                length = dataUids.length;
+
+            for(let i=0;i<length;i++)
+            {
+                dataScores.forEach((score,pos) =>{
+                    if(score > maxScore) {
+                        maxScore = score;
+                        maxPos = pos;
+                    }
+                });
+                DATA.scores.push(maxScore);
+                DATA.rankUids.push(dataUids[maxPos]);
+                maxScore = 0;
+                dataScores[maxPos] = 0;
+            }
+            cc.log(data.rank,DATA.scores,DATA.rankUids);
         }
     }
 

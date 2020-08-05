@@ -449,6 +449,8 @@ export class Game extends cc.Component {
     {
         let ctx = this.node.getComponent(cc.Graphics);
         //画竖线
+        ctx.lineWidth = 3;
+        
         for(let i = 0;i <= this.board.width;i++)
         {
             ctx.moveTo(-125+250/this.board.width*i,-250);

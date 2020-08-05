@@ -490,6 +490,7 @@ export class recordGame extends cc.Component {
         let ctx = this.node.getComponent(cc.Graphics);
 
         //画竖线
+        ctx.lineWidth = 3;ctx.lineWidth = 3;
         for(let i = 0;i <= 10;i++)
         {
             ctx.moveTo(-615+250/10*i,-265);

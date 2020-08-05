@@ -270,6 +270,9 @@ export class MatchingGame extends cc.Component {
         this.board.on('over',()=>{
             this.board.isPlaying = false;
             DATA.ws.send({desc:"gameOver"});
+            
+            if(DATA.information[DATA.uid].score >= 1000)
+                DATA.ws.send({desc:"score",data:{score:DATA.information[DATA.uid].score}});
             model = null;//重置难度 防止在其他场景start开始 
         })
         
@@ -631,6 +634,8 @@ export class MatchingGame extends cc.Component {
                     overLabel.fontSize = 40;
                     cc.director.getScene().addChild(node);
                     this.overs.push(node);
+
+                    
                 }
             }
             else{}
@@ -1118,6 +1123,7 @@ export class MatchingGame extends cc.Component {
         let ctx = this.node.getComponent(cc.Graphics);
 
         //画竖线
+        ctx.lineWidth = 3;
         for(let i = 0;i <= 10;i++)
         {
             ctx.moveTo(-615+250/10*i,-265);
