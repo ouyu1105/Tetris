@@ -196,8 +196,8 @@ export class MatchingGame extends cc.Component {
                         cc.director.getScene().addChild(node);
                     });
                 }
-            });      
-        });   
+            });
+        });
 
         //在棋盘显示方块 
         this.board.on('blockSet', st => {
@@ -247,6 +247,7 @@ export class MatchingGame extends cc.Component {
 
                 DATA.information[DATA.uid].score += s[v.length];
             });
+
 
             this.board.play();
         });
@@ -396,9 +397,6 @@ export class MatchingGame extends cc.Component {
                         });
                     });
                     DATA_UID.score += s[v.length];
-                    if(DATA_UID.score > 6000)
-                        this.board.speed = 200 - Math.floor(DATA_UID.score - 6000) / 50; 
-                    
                     
                 });
                 let tempLevel = this.getLevel(DATA_UID.score);
@@ -407,7 +405,6 @@ export class MatchingGame extends cc.Component {
                 if (tempLevel > DATA_UID.level)
                 {
                     DATA_UID.level = tempLevel;
-                    cc.log(this.board.speed);
                     if (data.uid != DATA.uid) {
                         if(DATA.information[DATA.uid].debuffTag == false)
                         {
@@ -422,9 +419,8 @@ export class MatchingGame extends cc.Component {
                     else{
                         this.board.speed = SPEED[DATA_UID.level];
                         if (DATA.information[DATA.uid].debuffTag == true)
-                            this.board.speed *= DEBUFF;  
+                            this.board.speed *= DEBUFF;
                     }
-                    cc.log(this.board.speed);
                 }
  
                 
@@ -432,10 +428,13 @@ export class MatchingGame extends cc.Component {
                 DATA_UID.scoreLabel.string = DATA_UID.score.toString();
                 DATA_UID.levelLabel.string = DATA_UID.level.toString();
 
-                /*if(data.uid == DATA.uid)
+                if(data.uid == DATA.uid)
                 {
-                    this.board.speed = SPEED[DATA_UID.level];
-                }*/
+                    if(DATA.information[DATA.uid].score > 6000)
+                        this.board.speed = 200 - (Math.floor(DATA.information[DATA.uid].score - 6000) / 50);
+                }
+
+                
     
             }
             
@@ -460,9 +459,6 @@ export class MatchingGame extends cc.Component {
                 DATA_UID.y = 0;
                 DATA_UID.x = 4;
                 DATA_UID.score += 5;
-                if(DATA_UID.score > 6000)
-                        this.board.speed = 200 - Math.floor(DATA_UID.score - 6000) / 50; 
-                //DATA_UID.level = this.getLevel(DATA_UID.score);
 
                 if (data.uid == DATA.uid)
                 {
@@ -507,9 +503,10 @@ export class MatchingGame extends cc.Component {
                     else{
                         this.board.speed = SPEED[DATA_UID.level];
                         if (DATA.information[DATA.uid].debuffTag == true)
-                            this.board.speed *=DEBUFF;  
+                            this.board.speed *=DEBUFF; 
+
                     }
-                    cc.log(this.board.speed);
+                    
                 }
 
 
@@ -518,10 +515,11 @@ export class MatchingGame extends cc.Component {
                 DATA_UID.scoreLabel.string = DATA_UID.score.toString();
                 DATA_UID.levelLabel.string = DATA_UID.level.toString();
 
-                /*if(data.uid == DATA.uid)
+                if(data.uid == DATA.uid)
                 {
-                    this.board.speed = SPEED[DATA_UID.level];
-                }*/
+                    if(DATA.information[DATA.uid].score > 6000)
+                        this.board.speed = 200 - (Math.floor(DATA.information[DATA.uid].score - 6000) / 50);
+                }
 
             }
             else{}
@@ -679,6 +677,7 @@ export class MatchingGame extends cc.Component {
                     DATA.information[data.unn[i]].nextColor = COLORS[this.getRandomInt(0,5)];
                     DATA.information[data.unn[i]].score = 0;
                     DATA.information[data.unn[i]].level = 1;
+                    DATA.information[data.unn[i]].debuffTag = false;
                     
 
                 }
@@ -716,7 +715,32 @@ export class MatchingGame extends cc.Component {
                 DATA_UID.y = 0;
                 DATA_UID.x = 4;
                 DATA_UID.score += 5;
-                DATA_UID.level = this.getLevel(DATA_UID.score);
+
+
+                let tempLevel = this.getLevel(DATA_UID.score);
+        
+                //自己升级不加速
+                if (tempLevel > DATA_UID.level)
+                {
+                    DATA_UID.level = tempLevel;
+                    if (data.uid != DATA.uid) {
+                        if(DATA.information[DATA.uid].debuffTag == false)
+                        {
+                            DATA.information[DATA.uid].debuffTag = true;
+                            this.board.speed *= DEBUFF;
+                            setTimeout(() => {
+                                DATA.information[DATA.uid].debuffTag = false;
+                                this.board.speed /= DEBUFF;
+                            }, 10000);
+                        }
+                    }
+                    else{
+                        this.board.speed = SPEED[DATA_UID.level];
+                        if (DATA.information[DATA.uid].debuffTag == true)
+                            this.board.speed *= DEBUFF;
+
+                    }
+                }
 
 
                 if(data.uid == DATA.uid)
@@ -724,6 +748,9 @@ export class MatchingGame extends cc.Component {
                     this.board.dropping = DATA_UID.Now;
                     this.board.yPos = 0;
                     this.board.xPos = 4;
+
+                    if(DATA.information[DATA.uid].score > 6000)
+                        this.board.speed = 200 - (Math.floor(DATA.information[DATA.uid].score - 6000) / 50);
                 }
 
                 DATA_UID.nowContainer.forEach((node, i) => {
@@ -739,6 +766,8 @@ export class MatchingGame extends cc.Component {
                     node.setPosition(DATA_UID.drawX+180+x*350/20,647-y*350/20);
                     node.color = DATA_UID.nextColor;
                 });
+
+                
 
                 DATA_UID.scoreLabel.string = DATA_UID.score.toString();
                 DATA_UID.levelLabel.string = DATA_UID.level.toString();
@@ -775,8 +804,38 @@ export class MatchingGame extends cc.Component {
                         }
 
                     });
-                    DATA_UID.score += s[v.length];      
-                });       
+                    DATA_UID.score += s[v.length];
+                });
+
+                let tempLevel = this.getLevel(DATA_UID.score);
+                //自己升级不加速
+                if (tempLevel > DATA_UID.level)
+                {
+                    DATA_UID.level = tempLevel;
+                    if (data.uid != DATA.uid) {
+                        if(DATA.information[DATA.uid].debuffTag == false)
+                        {
+                            DATA.information[DATA.uid].debuffTag = true;
+                            this.board.speed *= DEBUFF;
+                            setTimeout(() => {
+                                DATA.information[DATA.uid].debuffTag = false;
+                                this.board.speed /= DEBUFF;
+                            }, 10000);
+                        }
+                    }
+                    else{
+                        this.board.speed = SPEED[DATA_UID.level];
+                        if (DATA.information[DATA.uid].debuffTag == true)
+                            this.board.speed *= DEBUFF;
+
+                    }
+                }
+
+                if(data.uid == DATA.uid)
+                {
+                    if(DATA.information[DATA.uid].score > 6000)
+                        this.board.speed = 200 - (Math.floor(DATA.information[DATA.uid].score - 6000) / 50);
+                }
 
                 DATA_UID.scoreLabel.string = DATA_UID.score.toString();
                 DATA_UID.levelLabel.string = DATA_UID.level.toString();  
