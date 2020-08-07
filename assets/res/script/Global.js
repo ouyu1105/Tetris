@@ -8,6 +8,9 @@ const DATA = {};
 // ....
 
 
+window.Global = {};
+
+
 //单机、AI、匹配模式
 DATA.mod = null;
 DATA.MOD = ["single","AI","matching"];

@@ -232,7 +232,7 @@ export class Matching extends cc.Component {
                 DATA.information[data.unn[i]].Now = data.unn[i+1];
                 DATA.information[data.unn[i]].Next = data.unn[i+2];
                 DATA.information[data.unn[i]].y = 0;
-                DATA.information[data.unn[i]].x = 9;
+                DATA.information[data.unn[i]].x = 4;
                 DATA.information[data.unn[i]].nowColor = COLORS[this.getRandomInt(0,5)];
                 DATA.information[data.unn[i]].nextColor = COLORS[this.getRandomInt(0,5)];
                 DATA.information[data.unn[i]].score = 0;
@@ -256,6 +256,7 @@ export class Matching extends cc.Component {
                     DATA.uid3s = data.uid3s;
                     DATA.uid4s = data.uid4s;
                     DATA.dates = data.dates;
+                    //倒置
                     DATA.ids.reverse();
                     DATA.uid1s.reverse();
                     DATA.uid2s.reverse();

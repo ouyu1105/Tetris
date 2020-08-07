@@ -156,8 +156,7 @@ export class MatchingGame extends cc.Component {
             info.levelLabel.fontSize = 30;   
             info.levelLabel.node.x = 30 + info.drawX;
             info.levelLabel.node.y = 30;
-            info.levelLabel.node.color = cc.color(255,255,255);
-         
+            info.levelLabel.node.color = cc.color(255,255,255);         
         }
         
         model = "match";
@@ -659,12 +658,12 @@ export class MatchingGame extends cc.Component {
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP,this.OnKeyUp,this);
         let x,y;
 
-        var record;
-        if (DATA.record)
+        
+        if (DATA.record && DATA.record.length)
         {
             this.sta = 0; 
-            record = new GRecord(DATA.record);
-            DATA.record = "";
+            let record = new GRecord(DATA.record);
+            DATA.record = null;
             record.setSpeed(0);
             record.on("gameStart",(data)=>
             {
@@ -675,15 +674,36 @@ export class MatchingGame extends cc.Component {
                     DATA.information[data.unn[i]].Now = data.unn[i+1];
                     DATA.information[data.unn[i]].Next = data.unn[i+2];
                     DATA.information[data.unn[i]].y = 0;
-                    DATA.information[data.unn[i]].x = 9;
+                    DATA.information[data.unn[i]].x = 4;
                     DATA.information[data.unn[i]].nowColor = COLORS[this.getRandomInt(0,5)];
                     DATA.information[data.unn[i]].nextColor = COLORS[this.getRandomInt(0,5)];
                     DATA.information[data.unn[i]].score = 0;
                     DATA.information[data.unn[i]].level = 1;
-                     
+                    
+
                 }
 
+                let DATA_UID = DATA.information[DATA.uid];
                 this.init();
+                this.board.dropping = DATA_UID.Now;
+                this.board.yPos = 0;
+                this.board.xPos = 4;
+                for(let k in DATA.information) {
+                    DATA_UID = DATA.information[k];
+                    DATA_UID.nowContainer.forEach((node, i) => {
+                        y = BlockShape[DATA_UID.Now][i][0];
+                        x = BlockShape[DATA_UID.Now][i][1];
+                        node.setPosition(DATA_UID.drawX+40+x*350/20,647-y*350/20);
+                        node.color = DATA_UID.nowColor;
+                    });
+    
+                    DATA_UID.nextContainer.forEach((node, i) => {
+                        y = BlockShape[DATA_UID.Next][i][0];
+                        x = BlockShape[DATA_UID.Next][i][1];
+                        node.setPosition(DATA_UID.drawX+180+x*350/20,647-y*350/20);
+                        node.color = DATA_UID.nextColor;
+                    });    
+                }
             });
 
             record.on("newDropping",(data)=>
@@ -954,7 +974,7 @@ export class MatchingGame extends cc.Component {
                     obj.func(obj.data);
                 });
                 DATA.record = null;
-            })
+            });
             record.play();
             
 
@@ -968,7 +988,11 @@ export class MatchingGame extends cc.Component {
                 let node5 = new cc.Node();
                 let timeLabel = node5.addComponent(cc.Label);
                 cc.director.getScene().addChild(node5);
-                timeLabel.string = '3';
+                timeLabel.node.x = 640;
+                timeLabel.node.y = 380;
+                timeLabel.fontSize = 55; 
+                timeLabel.node.color = cc.color(255,255,255); 
+                timeLabel.string = "3";
                 this.countdown = 3;//倒计时时间
                 if(this.countdown >= 0)
                 {
@@ -1005,10 +1029,7 @@ export class MatchingGame extends cc.Component {
         {
             this.countdown--;
             timeLabel.string = this.countdown.toString();
-            timeLabel.node.x = 640;
-            timeLabel.node.y = 380;
-            timeLabel.fontSize = 55; 
-            timeLabel.node.color = cc.color(255,255,255); 
+            
 
             if(this.countdown == 0 )
             {       
@@ -1036,20 +1057,7 @@ export class MatchingGame extends cc.Component {
                         node.setPosition(info.drawX+180+x*350/20,642-y*350/20);
                         node.color = info.nextColor;
                     });
-
-                    info.scoreLabel .string = "0";
-                    info.scoreLabel .fontSize = 30;
-                    info.scoreLabel .node.x = 180 + info.drawX;
-                    info.scoreLabel .node.y = 30;
-                    info.scoreLabel .node.color = cc.color(255,255,255);
-        
-                    //计算等级并显示
-                    info.levelLabel.string = "1";
-                    info.levelLabel.fontSize = 30;   
-                    info.levelLabel.node.x = 30 + info.drawX;
-                    info.levelLabel.node.y = 30;
-                    info.levelLabel.node.color = cc.color(255,255,255);
-                } 
+                }
                 this.board.newDropping(DATA.information[DATA.uid].Now);
             }
         }
@@ -1272,13 +1280,15 @@ export class MatchingGame extends cc.Component {
         let node = new cc.Node();
         let idLabel = node.addComponent(cc.Label);
         cc.director.getScene().addChild(node);
-        node.setContentSize(100,100);;
+        node.setContentSize(100,100);
         idLabel.string = "ID:"+DATA.uid;
         idLabel.fontSize = 40;   
         idLabel.node.x = 190;
         idLabel.node.y = 630;
         idLabel.node.color = cc.color(255,255,255);
     }
+
+    
 
 
 

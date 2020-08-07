@@ -213,6 +213,7 @@ export class Game extends cc.Component {
                 this.board.speed = SPEED[level];
                 cc.log("speed:"+this.board.speed);
             }
+
         });
 
         //消除方块
@@ -407,10 +408,6 @@ export class Game extends cc.Component {
                 else if(this.isPlaying == false)
                 {
                     this.board.play();
-                }
-                else
-                {
-                    
                 }
                 break;
             case cc.macro.KEY.escape:

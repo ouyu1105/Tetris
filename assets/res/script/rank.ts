@@ -2,6 +2,8 @@ import { DATA } from './Global.js';
 import { WS } from './ws';
 const {ccclass, property} = cc._decorator;
 
+
+
 function makeRank(uid: number, score: number) : string {
     let space = "            ";
     let suid = String(uid), sscore = String(score);

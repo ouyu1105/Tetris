@@ -59,7 +59,7 @@ export class Login extends cc.Component {
             {
                 // 登录成功
                 DATA.rid = data.rid;
-                DATA.record = data.record;
+                DATA.record = data.record || null;
                 cc.sys.localStorage.setItem("ID",DATA.uid);
                 let node = cc.find("Canvas/LoginBackGround");
                 let check = node.getChildByName("remPassword").getComponent(cc.Toggle);

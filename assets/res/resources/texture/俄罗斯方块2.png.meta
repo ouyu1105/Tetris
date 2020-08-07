@@ -1,6 +1,6 @@
 {
   "ver": "2.3.5",
-  "uuid": "d9411f80-6d36-4c91-bec6-8acf4e394250",
+  "uuid": "24f074e5-5358-45a2-8c4a-c5cd94bb5b25",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -13,8 +13,8 @@
   "subMetas": {
     "俄罗斯方块2": {
       "ver": "1.0.4",
-      "uuid": "622d659a-c296-4153-846a-8c39578b1793",
-      "rawTextureUuid": "d9411f80-6d36-4c91-bec6-8acf4e394250",
+      "uuid": "a83a6274-0276-41b1-a609-0df6a9fb2e86",
+      "rawTextureUuid": "24f074e5-5358-45a2-8c4a-c5cd94bb5b25",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,
