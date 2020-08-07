@@ -12,8 +12,11 @@ const COLORS=[
     cc.Color.ORANGE
 ];
 
+
 //定义等级对应积分
-const SCORE=[100,300,600,1000,1500,2100,2800,3600,4500,6000];
+const SCORE=[100,300,600,1000,1500,2100,2800,3600,5000];
+
+
 
 const BlockShape = [
     [[ 0, 0],[ 0, 1],[ 1, 0],[ 1, 1]],  // 0
@@ -590,12 +593,8 @@ export class recordGame extends cc.Component {
             //this.board.level = 9;
             return 9;
         }
-        else if(score < SCORE[9])
-        {
-            //this.board.level=10;
-            return 10;
-        }
-        }
+        return 10;
+    }
     
     
 

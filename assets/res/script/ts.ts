@@ -71,7 +71,7 @@ export class Login extends cc.Component {
 
                 check = node.getChildByName("autoLogin").getComponent(cc.Toggle);
                 cc.sys.localStorage.setItem("autoLogin",check.isChecked);
-                if (DATA.record)
+                if (DATA.record && data.record.length)
                 {
                     cc.director.loadScene("MatchingGameView"); // 加载游戏场景
                 }

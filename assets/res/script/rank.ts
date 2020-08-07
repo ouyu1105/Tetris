@@ -2,6 +2,14 @@ import { DATA } from './Global.js';
 import { WS } from './ws';
 const {ccclass, property} = cc._decorator;
 
+function makeRank(uid: number, score: number) : string {
+    let space = "            ";
+    let suid = String(uid), sscore = String(score);
+    let sp = suid.length + sscore.length - 9;
+    return suid + space.substr(0, space.length - sp * 2) + sscore;
+}
+
+
 @ccclass
 export class NewClass extends cc.Component {
 
@@ -36,7 +44,7 @@ export class NewClass extends cc.Component {
     showRankList()
     {
         let content = cc.find("Canvas/rankList/view/content");
-        content.setContentSize(450, DATA.scores.length * 60);
+        content.setContentSize(450, DATA.scores.length * 60 + 20);
         cc.assetManager.loadBundle('texture',(err, bundle) => {
             bundle.load('img',cc.SpriteFrame,(err,img)=>
             {
@@ -52,18 +60,18 @@ export class NewClass extends cc.Component {
                     spr.sizeMode = cc.Sprite.SizeMode.CUSTOM;
                     sprNode.setContentSize(400,55);
                     sprNode.x = 450;
-                    sprNode.y = -30-i*60;
+                    sprNode.y = -40-i*60;
                     sprNode.color = cc.Color.WHITE;
                     content.addChild(sprNode);
 
                     let node = new cc.Node();
                     let button = node.addComponent(cc.Button);
                     let label = button.addComponent(cc.Label);
-                    label.string = DATA.rankUids[i] + "            " + score;
+                    label.string = makeRank(DATA.rankUids[i], score);
                     label.fontSize = 35;
                     label.lineHeight = 30;
                     node.x = 450;
-                    node.y = -30-i*60;
+                    node.y = -40-i*60;
                     node.setContentSize(400, 55);
                     node.color = cc.Color.BLACK;
                     content.addChild(node);

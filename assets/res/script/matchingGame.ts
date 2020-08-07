@@ -21,6 +21,8 @@ const COLORS=[
     cc.Color.ORANGE
 ];
 
+const DEBUFF = 0.5;
+
 const BlockTrans = [
     0,  // 0 --> 0
     2,  // 1 --> 2
@@ -47,10 +49,10 @@ const BlockTrans = [
 const LEVEL=[1,2,3,4,5,6,7,8,9,10];
 
 //定义等级对应积分
-const SCORE=[100,300,600,1000,1500,2100,2800,3600,4500,6000];
+const SCORE=[100,300,600,1000,1500,2100,2800,3600,5000];
 
 //定义等级对应速度
-const SPEED=[800,800,750,700,640,580,510,440,360,270,150];
+const SPEED=[800,800,750,700,640,580,510,440,360,270,200];
 
 //定义练习模式难度
 const MODEL=["hell","hard","normal","easy","match","yinxing"];
@@ -395,6 +397,8 @@ export class MatchingGame extends cc.Component {
                         });
                     });
                     DATA_UID.score += s[v.length];
+                    if(DATA_UID.score > 6000)
+                        this.board.speed = 200 - Math.floor(DATA_UID.score - 6000) / 50; 
                     
                     
                 });
@@ -409,17 +413,17 @@ export class MatchingGame extends cc.Component {
                         if(DATA.information[DATA.uid].debuffTag == false)
                         {
                             DATA.information[DATA.uid].debuffTag = true;
-                            this.board.speed *= 0.4;
+                            this.board.speed *= DEBUFF;
                             setTimeout(() => {
                                 DATA.information[DATA.uid].debuffTag = false;
-                                this.board.speed /= 0.4;
+                                this.board.speed /= DEBUFF;
                             }, 10000);
                         }
                     }
                     else{
                         this.board.speed = SPEED[DATA_UID.level];
                         if (DATA.information[DATA.uid].debuffTag == true)
-                            this.board.speed *= 0.4;  
+                            this.board.speed *= DEBUFF;  
                     }
                     cc.log(this.board.speed);
                 }
@@ -457,6 +461,8 @@ export class MatchingGame extends cc.Component {
                 DATA_UID.y = 0;
                 DATA_UID.x = 4;
                 DATA_UID.score += 5;
+                if(DATA_UID.score > 6000)
+                        this.board.speed = 200 - Math.floor(DATA_UID.score - 6000) / 50; 
                 //DATA_UID.level = this.getLevel(DATA_UID.score);
 
                 if (data.uid == DATA.uid)
@@ -492,17 +498,17 @@ export class MatchingGame extends cc.Component {
                         if(DATA.information[DATA.uid].debuffTag == false)
                         {
                             DATA.information[DATA.uid].debuffTag = true;
-                            this.board.speed *= 0.5;
+                            this.board.speed *= DEBUFF;
                             setTimeout(() => {
                                 DATA.information[DATA.uid].debuffTag = false;
-                                this.board.speed /= 0.5;
+                                this.board.speed /= DEBUFF;
                             }, 10000);
                         }
                     }
                     else{
                         this.board.speed = SPEED[DATA_UID.level];
                         if (DATA.information[DATA.uid].debuffTag == true)
-                            this.board.speed *= 0.5;  
+                            this.board.speed *=DEBUFF;  
                     }
                     cc.log(this.board.speed);
                 }
@@ -962,6 +968,7 @@ export class MatchingGame extends cc.Component {
                 let node5 = new cc.Node();
                 let timeLabel = node5.addComponent(cc.Label);
                 cc.director.getScene().addChild(node5);
+                timeLabel.string = '3';
                 this.countdown = 3;//倒计时时间
                 if(this.countdown >= 0)
                 {
@@ -1071,18 +1078,17 @@ export class MatchingGame extends cc.Component {
                 break;
             case cc.macro.KEY.space:
 
-                if(this.isPlaying == true)
+                if(this.isPlaying == true && DATA.information[DATA.uid].level < 8 && DATA.information[DATA.uid].debuffTag == false)
                 {
                     this.board.pause();
-                    // 10s 开始play
+                    setTimeout(()=>{
+                        this.board.play();
+                    }, 5000);
+                    // 5s 开始play
                 }
                 else if(this.isPlaying == false)
                 {
                     this.board.play();
-                }
-                else
-                {
-                    
                 }
                 break;
             case cc.macro.KEY.escape:
@@ -1225,11 +1231,7 @@ export class MatchingGame extends cc.Component {
             //this.board.level = 9;
             return 9;
         }
-        else if(score < SCORE[9])
-        {
-            //this.board.level=10;
-            return 10;
-        }
+        return 10;
     }
 
     //获取模式对应速度
